@@ -1,0 +1,73 @@
+/* Import the classic arcade font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Main container for the retro card */
+.card-container {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #1a1a1a; /* Dark background */
+    border: 4px solid #00ffff; /* Bright cyan border */
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+    transition: all 0.3s ease;
+    
+    /* Neon glow effect using box-shadow */
+    box-shadow: 0 0 10px #00ffff, 
+                inset 0 0 10px #00ffff;
+
+    /* Add a subtle scanline overlay */
+    position: relative;
+    overflow: hidden;
+}
+
+.card-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.2),
+        rgba(0, 0, 0, 0.2) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    pointer-events: none; /* Allows clicks to pass through */
+    z-index: 1;
+}
+
+
+/* Interactive hover effect */
+.card-container:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 20px #ff00ff, /* Switch to magenta glow on hover */
+                inset 0 0 15px #ff00ff;
+    border-color: #ff00ff;
+}
+
+/* Styling for the image within the card */
+.card-image .flower {
+    max-width: 100%;
+    height: auto;
+    border: 3px solid #00ff00; /* Green pixelated border */
+    margin-bottom: 15px;
+    image-rendering: pixelated; /* Keeps the image sharp and blocky */
+
+    /* Retro CRT screen filter effect */
+    filter: contrast(1.1) brightness(1.1) saturate(1.2);
+}
+
+/* Styling for the text content */
+.card-content p {
+    color: #ffff00; /* Bright yellow text */
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+    
+    /* Glowing text effect */
+    text-shadow: 0 0 5px #ffff00, 0 0 8px #ffff00;
+    position: relative;
+    z-index: 2; /* Ensure text is above scanlines */
+}
