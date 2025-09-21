@@ -2,8 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import your components based on your file structure
-import Jet from './components/Jet';
-import Dark from './components/Dark';
+import Jet from './components/Jet.jsx';
+import Dark from './components/Dark.jsx';
 
 export default function App() {
   return (
