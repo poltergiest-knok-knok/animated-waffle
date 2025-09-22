@@ -23,12 +23,13 @@
 }
 
 /* ---------------- Base Page Styles ---------------- */
-body, html, #root, .App {
+/* Scope base rules to the Jet view only to avoid blocking scroll globally */
+.jet-root {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100vh;
+  /* Do NOT hide overflow globally; let page scroll on mobile */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #121212;
   color: white;
@@ -38,7 +39,7 @@ body, html, #root, .App {
 .main-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
 }
 
 /* ---------------- Typing Text ---------------- */

@@ -30,14 +30,17 @@ export default function Jet() {
 
       if (!fading) {
         textRef.current.textContent = fullText.slice(0, index);
+        // Ensure fully visible while typing
+        textRef.current.style.opacity = 1;
         index++;
         if (index > fullText.length) {
           fading = true;
           typeTimeout.current = setTimeout(typeText, displayTime);
-          return;
+          return; // pause before starting fade
         }
       } else {
-        let opacity = parseFloat(getComputedStyle(textRef.current).opacity);
+        // Fade out smoothly
+        let opacity = parseFloat(getComputedStyle(textRef.current).opacity || "1");
         opacity -= 0.05;
         textRef.current.style.opacity = opacity;
         if (opacity <= 0) {
@@ -190,12 +193,11 @@ export default function Jet() {
 
   return (
     <div
-      className="App main-container"
+      className="jet-root App main-container"
       style={{
         position: "relative",
         width: "100%",
-        height: "100vh",
-        overflow: "hidden",
+        minHeight: "100vh" // allow page to scroll if content grows
       }}
     >
       <canvas

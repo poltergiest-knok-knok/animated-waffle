@@ -60,14 +60,17 @@
 .navbar {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 40px;
   padding: 20px 30px;
   border: 3px solid #00ffff;
   background-color: rgba(0,0,0,0.6);
   box-shadow: 0 0 15px #00ffff, inset 0 0 10px #00ffff;
-  width: fit-content;
+  width: 100%;
+  max-width: 1200px;
+  box-sizing: border-box;
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative;
 }
 
 .navbar:hover {
@@ -106,6 +109,31 @@
   height: 3px;
   background-color: #00ff00;
   box-shadow: 0 0 5px #00ff00;
+}
+
+/* Three-dots toggle (hidden on desktop) */
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+}
+.menu-toggle .dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: 3px 0;
+  background: #ff00ff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #ff00ff;
+}
+
+/* Navigation links - desktop default (mobile overrides below) */
+.nav-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
 
 .eooks-text {
@@ -160,7 +188,7 @@
   color: #00ffff;
   margin-bottom: 40px;
   line-height: 1.5;
-  text-shadow: 0 0 5px #304343ff;
+  text-shadow: 0 0 5px #00ffff;
 }
 
 .action-buttons {
@@ -170,6 +198,7 @@
   margin-top: 20px;
 }
 
+.action-buttons button,
 .action-buttons p {
   background-color: transparent;
   padding: 15px 25px;
@@ -183,10 +212,17 @@
   box-shadow: 0 0 10px #ff00ff;
 }
 
+.action-buttons button:hover,
 .action-buttons p:hover {
   background-color: #ff00ff;
   color: #000;
   box-shadow: 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+}
+
+/* Keyboard focus visible for accessibility */
+.action-buttons button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 0, 255, 0.4), 0 0 0 6px rgba(255, 0, 255, 0.25);
 }
 
 /* =================================== */
@@ -199,12 +235,46 @@
     padding: 20px 15px; /* Add some side padding */
   }
 
-  /* Stack navbar items vertically */
+  /* Navbar becomes compact with toggle */
   .navbar {
+    width: 90%;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+
+  .menu-toggle { display: block; }
+
+  /* Collapsible links on mobile (keep in flow so borders remain visible) */
+  .nav-links {
+    display: flex;
+    position: absolute;
+    top: calc(100% - 3px); /* overlap the navbar border for a continuous frame */
+    left: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.9);
+    border: 3px solid #00ffff;
+    box-shadow: 0 0 15px #00ffff, inset 0 0 10px #00ffff;
+    padding: 16px;
+    border-top: none;
     flex-direction: column;
-    gap: 25px;
-    padding: 20px;
-    width: 90%; /* Give navbar a width to contain items */
+    gap: 16px;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+
+    /* Start collapsed: height/opacity controlled by JS animation; CSS provides a fallback */
+    opacity: 0;
+    transform: translateY(-8px);
+    height: 0;
+    overflow: hidden;
+    transition: opacity 220ms ease, transform 220ms ease, height 220ms ease;
+  }
+
+  /* When navbar has `.open` we allow visible styles; JS animation will handle a smoother drop-in */
+  .navbar.open .nav-links {
+    opacity: 1;
+    transform: translateY(0);
+    height: auto; /* JS will set explicit height when animating */
   }
 
   /* Adjust hero text for readability */
@@ -223,6 +293,7 @@
     align-items: center; /* Center buttons when stacked */
   }
   
+  .action-buttons button,
   .action-buttons p {
     width: 80%; /* Give buttons a consistent width */
     text-align: center;
