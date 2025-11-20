@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -6,45 +6,30 @@ import { useNavigate } from "react-router-dom";
 // ============== KEYFRAME EFFECTS =================
 
 const cinemaFlicker = keyframes`
-  0%, 100% { opacity: 1; transform: scale(1); }
-  10% { opacity: 0.95; transform: scale(1.005); }
-  20% { opacity: 0.98; transform: scale(0.995); }
-  30% { opacity: 1; transform: scale(1.002); }
-  40% { opacity: 0.97; transform: scale(0.998); }
-  50% { opacity: 1; transform: scale(1); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.95; }
 `;
 
 const neonGlow = keyframes`
   0%, 100% { 
-    box-shadow: 0 0 25px rgba(255, 20, 147, 0.4),
-                0 0 50px rgba(255, 20, 147, 0.2),
-                0 0 75px rgba(255, 20, 147, 0.1);
+    box-shadow: 0 0 20px rgba(255, 20, 147, 0.4);
   }
   50% { 
-    box-shadow: 0 0 35px rgba(255, 20, 147, 0.7),
-                0 0 70px rgba(255, 20, 147, 0.4),
-                0 0 100px rgba(255, 20, 147, 0.2);
+    box-shadow: 0 0 30px rgba(255, 20, 147, 0.6);
   }
 `;
 
 const filmGrain = keyframes`
   0%, 100% { background-position: 0% 0%; }
-  25% { background-position: 5% 5%; }
-  50% { background-position: 10% 10%; }
-  75% { background-position: 15% 15%; }
+  50% { background-position: 5% 5%; }
 `;
 
 const textReveal = keyframes`
   0% { 
-    background-position: -200% center;
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
+    background-position: -100% center;
   }
   100% { 
-    background-position: 200% center;
-    opacity: 0.9;
+    background-position: 100% center;
   }
 `;
 
@@ -98,7 +83,7 @@ const CinemaContainer = styled(motion.div)`
       );
     pointer-events: none;
     z-index: 1;
-    animation: ${filmGrain} 0.5s infinite;
+    animation: ${filmGrain} 2s infinite;
   }
 `;
 
@@ -175,7 +160,7 @@ const CinemaTitle = styled(motion.h1)`
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: ${textReveal} 4s linear infinite;
+  animation: ${textReveal} 8s linear infinite;
   filter: drop-shadow(0 0 30px rgba(255, 20, 147, 0.6));
   position: relative;
   
@@ -187,7 +172,7 @@ const CinemaTitle = styled(motion.h1)`
     right: -10px;
     bottom: -10px;
     background: linear-gradient(45deg, transparent, rgba(255, 20, 147, 0.1), transparent);
-    animation: ${cinemaFlicker} 3s ease-in-out infinite;
+    animation: ${cinemaFlicker} 4s ease-in-out infinite;
     z-index: -1;
   }
   
@@ -294,7 +279,7 @@ const VideoShowcase = styled(motion.div)`
   overflow: hidden;
   background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(0, 191, 255, 0.1));
   border: 3px solid rgba(255, 20, 147, 0.3);
-  animation: ${neonGlow} 4s ease-in-out infinite;
+  animation: ${neonGlow} 6s ease-in-out infinite;
   
   @media (max-width: 768px) {
     height: 350px;
@@ -501,7 +486,7 @@ const SpecsShowcase = styled(motion.div)`
     width: 200%;
     height: 200%;
     background: linear-gradient(45deg, transparent, rgba(255, 20, 147, 0.1), transparent);
-    animation: ${textReveal} 8s linear infinite;
+    animation: ${textReveal} 12s linear infinite;
   }
   
   @media (max-width: 768px) {
@@ -601,7 +586,6 @@ const videoProjects = {
       title: "Cinematic Montage",
       description: "High-energy promotional video featuring dynamic transitions, color grading, and synchronized audio for maximum impact.",
       type: "Commercial",
-      duration: "0:45",
       link: "https://drive.google.com/file/d/1atG4tA2ToM3gQy62abHBn2xlKUxoIgUn/view?usp=drive_link",
       embedId: "1atG4tA2ToM3gQy62abHBn2xlKUxoIgUn"
     },
@@ -609,7 +593,6 @@ const videoProjects = {
       title: "Brand Story",
       description: "Compelling narrative-driven content with professional motion graphics and seamless visual storytelling.",
       type: "Marketing",
-      duration: "1:30",
       link: "https://drive.google.com/file/d/1-NK0xtCaFurfKdVOx6jl7fhPKmWJX04Z/view?usp=drive_link",
       embedId: "1-NK0xtCaFurfKdVOx6jl7fhPKmWJX04Z"
     },
@@ -617,7 +600,6 @@ const videoProjects = {
       title: "Social Media Promo",
       description: "Fast-paced social media content optimized for engagement with trendy cuts and vibrant color schemes.",
       type: "Social Media",
-      duration: "0:30",
       link: "https://drive.google.com/file/d/1-2n8UcqRxt75bIausHPoPwHSfjJPaBwl/view?usp=drive_link",
       embedId: "1-2n8UcqRxt75bIausHPoPwHSfjJPaBwl"
     },
@@ -625,7 +607,6 @@ const videoProjects = {
       title: "Product Showcase",
       description: "Sleek product demonstration featuring smooth transitions, close-up details, and professional lighting effects.",
       type: "Product Demo",
-      duration: "1:15",
       link: "https://drive.google.com/file/d/1ZcPSuMzJEOcmhPKSMF5gFp9u5YZvwYRN/view?usp=drive_link",
       embedId: "1ZcPSuMzJEOcmhPKSMF5gFp9u5YZvwYRN"
     },
@@ -633,7 +614,6 @@ const videoProjects = {
       title: "Event Highlights",
       description: "Dynamic event recap with synchronized beats, crowd reactions, and atmospheric color grading for maximum energy.",
       type: "Event",
-      duration: "2:00",
       link: "https://drive.google.com/file/d/1gULhVfXtzTwTEQDe9DjyzEkTmotJHfz5/view?usp=drive_link",
       embedId: "1gULhVfXtzTwTEQDe9DjyzEkTmotJHfz5"
     },
@@ -641,7 +621,6 @@ const videoProjects = {
       title: "Creative Trailer",
       description: "Cinematic trailer with dramatic pacing, epic sound design, and Hollywood-style visual effects and transitions.",
       type: "Trailer",
-      duration: "1:45",
       link: "https://drive.google.com/file/d/1EduKn1LEe-fgyNOn-9_fSjE1fAU9AaU7/view?usp=drive_link",
       embedId: "1EduKn1LEe-fgyNOn-9_fSjE1fAU9AaU7"
     },
@@ -649,7 +628,6 @@ const videoProjects = {
       title: "Fashion Reel",
       description: "Stylish fashion video with rhythmic editing, trendy effects, and mood-driven color palettes for modern aesthetics.",
       type: "Fashion",
-      duration: "1:20",
       link: "https://drive.google.com/file/d/17AE-hyDxoAYkogmuTm06SVDrm9lii6pD/view?usp=drive_link",
       embedId: "17AE-hyDxoAYkogmuTm06SVDrm9lii6pD"
     },
@@ -657,7 +635,6 @@ const videoProjects = {
       title: "Music Video",
       description: "Beat-synchronized music video featuring creative visual effects, dynamic camera angles, and artistic storytelling.",
       type: "Music Video",
-      duration: "2:30",
       link: "https://drive.google.com/file/d/1ENuSIjisGMLP_1hiOsDumeAR_hcROj8g/view?usp=drive_link",
       embedId: "1ENuSIjisGMLP_1hiOsDumeAR_hcROj8g"
     },
@@ -665,7 +642,6 @@ const videoProjects = {
       title: "Tech Demo",
       description: "Modern technology showcase with sleek animations, futuristic transitions, and clean minimalist design aesthetics.",
       type: "Technology",
-      duration: "1:10",
       link: "https://drive.google.com/file/d/1niEhx022OR91BLSQfF4vuVfJkxVLLmTU/view?usp=drive_link",
       embedId: "1niEhx022OR91BLSQfF4vuVfJkxVLLmTU"
     }
@@ -675,7 +651,6 @@ const videoProjects = {
       title: "Documentary Feature",
       description: "Full-length documentary with advanced editing techniques, multicamera synchronization, and immersive sound design.",
       type: "Documentary",
-      duration: "15:30",
       link: "https://drive.google.com/file/d/1e2vY0CLRAy4iquChpngQsakoR1xPZCM7/view?usp=drive_link",
       embedId: "1e2vY0CLRAy4iquChpngQsakoR1xPZCM7"
     },
@@ -683,7 +658,6 @@ const videoProjects = {
       title: "Creative Showcase",
       description: "Artistic video production showcasing advanced visual effects, color theory application, and innovative editing workflows.",
       type: "Artistic",
-      duration: "12:45",
       link: "https://drive.google.com/file/d/1l0UcpnQWaVJCkULNUSA8TBqeaVMhDSSV/view?usp=drive_link",
       embedId: "1l0UcpnQWaVJCkULNUSA8TBqeaVMhDSSV"
     }
@@ -706,7 +680,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.3
+      staggerChildren: 0.15
     }
   }
 };
@@ -752,15 +726,22 @@ const videoVariants = {
 //                   COMPONENT
 // =================================================
 
-export default function Video() {
+const Video = memo(() => {
   const [activeCategory, setActiveCategory] = useState('short');
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [playingVideo, setPlayingVideo] = useState(null);
   const navigate = useNavigate();
 
-  const handlePlayVideo = (index) => {
-    setPlayingVideo(playingVideo === index ? null : index);
-  };
+  const handlePlayVideo = useCallback((index) => {
+    setPlayingVideo(prev => prev === index ? null : index);
+  }, []);
+
+  const handleCategoryChange = useCallback((category) => {
+    setActiveCategory(category);
+    setPlayingVideo(null);
+  }, []);
+
+  const currentVideos = useMemo(() => videoProjects[activeCategory], [activeCategory]);
 
   return (
     <CinemaContainer
@@ -800,10 +781,7 @@ export default function Video() {
         <VideoCategories variants={itemVariants}>
           <CategoryButton
             active={activeCategory === 'short'}
-            onClick={() => {
-              setActiveCategory('short');
-              setPlayingVideo(null);
-            }}
+            onClick={() => handleCategoryChange('short')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -811,10 +789,7 @@ export default function Video() {
           </CategoryButton>
           <CategoryButton
             active={activeCategory === 'long'}
-            onClick={() => {
-              setActiveCategory('long');
-              setPlayingVideo(null);
-            }}
+            onClick={() => handleCategoryChange('long')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -830,7 +805,7 @@ export default function Video() {
             animate="visible"
             exit={{ opacity: 0, y: -50 }}
           >
-            {videoProjects[activeCategory].map((video, index) => (
+            {currentVideos.map((video, index) => (
               <VideoShowcase
                 key={`${activeCategory}-${index}`}
                 variants={videoVariants}
@@ -870,7 +845,7 @@ export default function Video() {
                     {video.description}
                     <br />
                     <strong style={{ color: '#ff1493' }}>
-                      {video.type} • {video.duration}
+                      {video.type}
                     </strong>
                   </VideoDesc>
                   <VideoLink 
@@ -916,4 +891,8 @@ export default function Video() {
       </Container>
     </CinemaContainer>
   );
-}
+});
+
+Video.displayName = 'Video';
+
+export default Video;

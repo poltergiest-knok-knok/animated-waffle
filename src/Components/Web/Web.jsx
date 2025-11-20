@@ -146,16 +146,19 @@ const ProjectsGrid = styled(motion.div)`
 
 const ProjectShowcase = styled(motion.div)`
   position: relative;
-  height: 500px;
+  height: 600px;
   perspective: 1000px;
   cursor: pointer;
   
   @media (max-width: 768px) {
-    height: 400px;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
+    cursor: default;
   }
   
   @media (max-width: 480px) {
-    height: 350px;
+    height: 400px;
   }
 `;
 
@@ -166,6 +169,8 @@ const ProjectImage = styled(motion.div)`
   background-image: url(${props => props.bgImage});
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: local;
   position: relative;
   overflow: hidden;
   border: 3px solid rgba(0, 255, 255, 0.3);
@@ -195,6 +200,30 @@ const ProjectImage = styled(motion.div)`
       rgba(0, 0, 0, 0.4) 100%
     );
   }
+  
+  @media (max-width: 768px) {
+    height: 100%;
+    flex-shrink: 0;
+    background-attachment: scroll;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    
+    &::before {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.4) 0%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(0, 0, 0, 0.4) 100%
+      );
+    }
+  }
+  
+  @media (max-width: 480px) {
+    height: 100%;
+    background-size: cover !important;
+    background-position: center center !important;
+  }
 `;
 
 const ProjectInfo = styled(motion.div)`
@@ -208,6 +237,10 @@ const ProjectInfo = styled(motion.div)`
   
   @media (max-width: 768px) {
     padding: 25px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.9);
+    transform: none !important;
+    opacity: 1 !important;
   }
   
   @media (max-width: 480px) {
@@ -657,6 +690,12 @@ export default function Web() {
                     opacity: selectedProject === index ? 1 : 0.8 
                   }}
                   transition={{ duration: 0.4 }}
+                  style={{
+                    '@media (max-width: 768px)': {
+                      y: 0,
+                      opacity: 1
+                    }
+                  }}
                 >
                   <ProjectTitle>{project.name}</ProjectTitle>
                   <ProjectDesc>{project.description}</ProjectDesc>

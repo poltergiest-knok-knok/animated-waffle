@@ -1,6 +1,6 @@
 // src/components/Dark.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import Temp from "./Temp.jsx";
 import video from "../assets/pixelbg.mp4";
@@ -33,7 +33,7 @@ const DarkContainer = styled.div`
   padding: 20px;
   min-height: 100vh;
   color: white;
-  font-family: "Press Start 2P", cursive;
+  font-family: "Press Start 2P", monospace;
   background-color: black;
   display: flex;
   flex-direction: column;
@@ -54,13 +54,14 @@ const DarkContainer = styled.div`
     transparent 2px
   );
 
-  /* Pixel cursor */
-  cursor: url('data:image/svg+xml;utf8,<svg width="22" height="16" viewBox="0 0 11 8" xmlns="http://www.w3.org/2000/svg"><rect fill="%2300ff00" x="2" y="0" width="1" height="1"/><rect fill="%2300ff00" x="8" y="0" width="1" height="1"/><rect fill="%2300ff00" x="3" y="1" width="1" height="1"/><rect fill="%2300ff00" x="7" y="1" width="1" height="1"/><rect fill="%2300ff00" x="2" y="2" width="7" height="1"/><rect fill="%2300ff00" x="1" y="3" width="2" height="1"/><rect fill="%2300ff00" x="4" y="3" width="3" height="1"/><rect fill="%2300ff00" x="8" y="3" width="2" height="1"/><rect fill="%2300ff00" x="0" y="4" width="11" height="1"/><rect fill="%2300ff00" x="0" y="5" width="1" height="1"/><rect fill="%2300ff00" x="2" y="5" width="7" height="1"/><rect fill="%2300ff00" x="10" y="5" width="1" height="1"/><rect fill="%2300ff00" x="0" y="6" width="1" height="1"/><rect fill="%2300ff00" x="2" y="6" width="1" height="1"/><rect fill="%2300ff00" x="8" y="6" width="1" height="1"/><rect fill="%2300ff00" x="10" y="6" width="1" height="1"/><rect fill="%2300ff00" x="3" y="7" width="2" height="1"/><rect fill="%2300ff00" x="6" y="7" width="2" height="1"/></svg>'),
-      auto;
-
   @media (max-width: 768px) {
     gap: 40px;
     padding: 20px 15px;
+    font-size: 0.8rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
   }
 `;
 
@@ -224,6 +225,60 @@ const HeroContent = styled.div`
   }
 `;
 
+const NavigationButtons = styled.div`
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  margin: 20px 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+`;
+
+const NavigationButton = styled.button`
+  padding: 15px 30px;
+  font-family: "Press Start 2P", monospace;
+  background: rgba(0, 0, 0, 0.8);
+  color: #00ffff;
+  border: 3px solid #00ffff;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  animation: ${blinkBorder} 3s infinite;
+  box-shadow: 0 0 15px #00ffff, inset 0 0 10px rgba(0, 255, 255, 0.1);
+
+  &:hover {
+    background: rgba(0, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: #ffffff;
+    box-shadow: 0 0 25px #ffffff, inset 0 0 15px rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    background: rgba(255, 0, 255, 0.1);
+    border-color: #ff00ff;
+    color: #ff00ff;
+    box-shadow: 0 0 20px #ff00ff, inset 0 0 10px rgba(255, 0, 255, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 24px;
+    font-size: 10px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px 20px;
+    font-size: 8px;
+    width: 250px;
+  }
+`;
+
 const ActionButtons = styled.div`
   display: flex;
   justify-content: center;
@@ -264,6 +319,7 @@ export default function Dark() {
   const [isMobile, setIsMobile] = useState(
     window.matchMedia("(max-width: 768px)").matches
   );
+  const navigate = useNavigate();
 
   const navRef = useRef(null);
   const tempRef = useRef(null);
@@ -439,6 +495,16 @@ export default function Dark() {
         <div className="subtitle">
           The most powerful person is here to help you !
         </div>
+
+        {/* ------------ NAVIGATION BUTTONS ------------ */}
+        <NavigationButtons>
+          <NavigationButton onClick={() => navigate("/web")}>
+            Web Portfolio
+          </NavigationButton>
+          <NavigationButton onClick={() => navigate("/video")}>
+            Video Portfolio
+          </NavigationButton>
+        </NavigationButtons>
 
         <ActionButtons>
           <p>Get started now</p>
