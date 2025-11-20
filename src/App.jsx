@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Import your components based on your file structure
 import Jet from './Components/Jet.jsx';
 import Dark from './Components/Dark.jsx';
+import Web from './Components/Web/Web.jsx';
+import Video from './Components/Video/Video.jsx';
 
 export default function App() {
   return (
@@ -15,8 +17,14 @@ export default function App() {
           {/* Route for the home page, rendering the Jet component */}
           <Route path="/" element={<Jet />} />
 
-          {/* Route for the '/next' path, rendering the Dark component */}
+          {/* Route for the '/dark' path, rendering the Dark component */}
           <Route path="/dark" element={<Dark />} />
+
+          {/* Route for the '/web' path, rendering the Web component */}
+          <Route path="/web" element={<Web />} />
+
+          {/* Route for the '/video' path, rendering the Video component */}
+          <Route path="/video" element={<Video />} />
         </Routes>
       </div>
     </Router>

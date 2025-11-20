@@ -1,264 +1,278 @@
+// src/components/Jet.jsx
 import React, { useEffect, useRef } from "react";
-import "./Jet.css";
-// import video from "../assets/space.mp4"; // No longer needed
+import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import Web from "./Web/Web";
+import Video from "./Video/Video";
+
+/* ---------------- Styled Components ---------------- */
+
+const JetRoot = styled.div`
+  width: 100%;
+  min-height: 100vh;
+  background-color: #121212;
+  color: white;
+  cursor: none;
+  overflow: hidden;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+`;
+
+const MainContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100vh;
+`;
+
+const TypingText = styled.h1`
+  position: absolute;
+  top: 40vh;
+  width: 100%;
+  text-align: center;
+  font-size: 3rem;
+  color: white;
+  opacity: 1;
+  transition: opacity 0.15s linear;
+  font-family: "Bitcount Prop Double Ink", system-ui;
+`;
+
+const MoreInfoButton = styled.button`
+  position: absolute;
+  top: 60vh;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 30px;
+  font-family: "Press Start 2P", monospace;
+  background: #111;
+  color: #0ff;
+  border: 3px solid #0ff;
+  text-transform: uppercase;
+  cursor: pointer;
+  z-index: 10;
+
+  &:hover {
+    background: #222;
+    color: #ff00ff;
+    border-color: #ff00ff;
+  }
+
+  &:active {
+    transform: translateX(-50%) scale(0.98);
+    background: #000;
+    border-color: #ffff00;
+    color: #ffff00;
+  }
+`;
+
+const CircleCursor = styled.div`
+  position: fixed;
+  width: 22px;
+  height: 22px;
+  background-color: #00ffff;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  transition: background-color 0.3s linear;
+`;
+
+const StyledCanvas = styled.canvas`
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+`;
+
+/* ---------------- Component ---------------- */
 
 export default function Jet() {
   const canvasRef = useRef(null);
   const textRef = useRef(null);
   const cursorRef = useRef(null);
   const dots = useRef([]);
-  const animationFrame = useRef(null);
-  const typeTimeout = useRef(null);
-
-  // The animateTransition state is no longer needed
-  // const [animateTransition, setAnimateTransition] = useState(false); 
+  const frameRef = useRef(null);
   const navigate = useNavigate();
 
-  // ---------------- Typing Text ----------------
+  /* ---------------- Typing Effect ---------------- */
   useEffect(() => {
-    const fullText = "Hello I am Abhi";
-    const typingSpeed = 150;
-    const fadeSpeed = 50;
-    const displayTime = 1000;
+    const element = textRef.current;
+    if (!element) return;
+
+    const text = "Hello I am Abhi";
+    const typeSpeed = 120;
+    const fadeSpeed = 40;
+    const delayAfterComplete = 800;
 
     let index = 0;
     let fading = false;
 
-    function typeText() {
-      if (!textRef.current) return;
+    function typeLoop() {
+      if (!element) return;
 
       if (!fading) {
-        textRef.current.textContent = fullText.slice(0, index);
-        // Ensure fully visible while typing
-        textRef.current.style.opacity = 1;
+        element.textContent = text.slice(0, index);
         index++;
-        if (index > fullText.length) {
+
+        if (index > text.length) {
           fading = true;
-          typeTimeout.current = setTimeout(typeText, displayTime);
-          return; // pause before starting fade
+          setTimeout(typeLoop, delayAfterComplete);
+          return;
         }
       } else {
-        // Fade out smoothly
-        let opacity = parseFloat(getComputedStyle(textRef.current).opacity || "1");
+        let opacity = parseFloat(element.style.opacity || "1");
         opacity -= 0.05;
-        textRef.current.style.opacity = opacity;
+        element.style.opacity = opacity;
+
         if (opacity <= 0) {
           fading = false;
-          textRef.current.style.opacity = 1;
           index = 0;
+          element.style.opacity = 1;
         }
       }
 
-      typeTimeout.current = setTimeout(
-        typeText,
-        fading ? fadeSpeed : typingSpeed
-      );
+      setTimeout(typeLoop, fading ? fadeSpeed : typeSpeed);
     }
 
-    typeText();
-    return () => {
-      if (typeTimeout.current) clearTimeout(typeTimeout.current);
-    };
+    typeLoop();
   }, []);
 
-  // ---------------- Custom Cursor ----------------
+  /* ---------------- Custom Cursor ---------------- */
   useEffect(() => {
     const cursor = cursorRef.current;
-    const colors = ["#ff4d4d", "#4dff4d", "#4d4dff", "#ffff4d", "#ff4dff"];
-    let colorIndex = 0;
+    if (!cursor) return;
 
-    const cursorInterval = setInterval(() => {
-      if (cursor) cursor.style.backgroundColor = colors[colorIndex];
-      colorIndex = (colorIndex + 1) % colors.length;
+    const colors = ["#ff4d4d", "#4dff4d", "#4d4dff", "#ffff4d", "#ff4dff"];
+    let ci = 0;
+
+    const colorCycle = setInterval(() => {
+      cursor.style.backgroundColor = colors[ci];
+      ci = (ci + 1) % colors.length;
     }, 500);
 
-    function moveCursor(e) {
-      if (cursor) {
-        cursor.style.left = e.clientX + "px";
-        cursor.style.top = e.clientY + "px";
-      }
+    function move(e) {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
     }
 
-    window.addEventListener("mousemove", moveCursor);
+    window.addEventListener("mousemove", move);
+    document.body.style.cursor = "none";
 
     return () => {
-      clearInterval(cursorInterval);
-      window.removeEventListener("mousemove", moveCursor);
+      clearInterval(colorCycle);
+      window.removeEventListener("mousemove", move);
+      document.body.style.cursor = "auto";
     };
   }, []);
 
-  // ---------------- Grid Dots ----------------
+  /* ---------------- Animated Dot Grid Canvas ---------------- */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
 
-    const spacing = 50;
-    const maxDist = 120;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    const spacing = 55;
+    const repelDistance = 80;
+    const connectDistance = 120;
 
-    function initDots() {
-      dots.current = [];
-      for (let x = spacing / 2; x < width; x += spacing) {
-        for (let y = spacing / 2; y < height; y += spacing) {
-          dots.current.push({
-            x,
-            y,
-            ox: x,
-            oy: y,
-            vx: 0,
-            vy: 0,
-            radius: 2,
-          });
-        }
-      }
-    }
-
-    initDots();
-
-    function animate() {
-      ctx.clearRect(0, 0, width, height);
-
-      for (let dot of dots.current) {
-        ctx.beginPath();
-        ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0,255,255,0.2)";
-        ctx.fill();
-      }
-
-      for (let i = 0; i < dots.current.length; i++) {
-        for (let j = i + 1; j < dots.current.length; j++) {
-          const dx = dots.current[i].x - dots.current[j].x;
-          const dy = dots.current[i].y - dots.current[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < maxDist) {
-            ctx.strokeStyle = "rgba(255,255,255,0.05)";
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(dots.current[i].x, dots.current[i].y);
-            ctx.lineTo(dots.current[j].x, dots.current[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      const cursor = cursorRef.current;
-      const mouseX = cursor ? parseFloat(cursor.style.left) : -100;
-      const mouseY = cursor ? parseFloat(cursor.style.top) : -100;
-
-      for (let dot of dots.current) {
-        const dx = dot.x - mouseX;
-        const dy = dot.y - mouseY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 80) {
-          const force = 0.2 * (1 - dist / 80);
-          dot.vx += (dx / dist) * force;
-          dot.vy += (dy / dist) * force;
-        }
-
-        dot.vx += (dot.ox - dot.x) * 0.002;
-        dot.vy += (dot.oy - dot.y) * 0.002;
-        dot.vx *= 0.95;
-        dot.vy *= 0.95;
-        dot.x += dot.vx;
-        dot.y += dot.vy;
-      }
-
-      animationFrame.current = requestAnimationFrame(animate);
-    }
-
-    animate();
-
-    function handleResize() {
+    function resize() {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
       initDots();
     }
 
-    window.addEventListener("resize", handleResize);
+    function initDots() {
+      dots.current = [];
+      for (let x = spacing; x < width; x += spacing) {
+        for (let y = spacing; y < height; y += spacing) {
+          dots.current.push({
+            x, y,
+            ox: x, oy: y,
+            vx: 0, vy: 0,
+          });
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      const cursor = cursorRef.current;
+      const mx = cursor ? parseFloat(cursor.style.left) : -100;
+      const my = cursor ? parseFloat(cursor.style.top) : -100;
+
+      const allDots = dots.current;
+
+      for (let i = 0; i < allDots.length; i++) {
+        const d = allDots[i];
+        const dx = d.x - mx;
+        const dy = d.y - my;
+        const dist = Math.hypot(dx, dy);
+
+        // repulsion
+        if (dist < repelDistance && dist > 1) {
+          const force = (repelDistance - dist) / repelDistance;
+          d.vx += (dx / dist) * force;
+          d.vy += (dy / dist) * force;
+        }
+
+        // pull back to original position
+        d.vx += (d.ox - d.x) * 0.015;
+        d.vy += (d.oy - d.y) * 0.015;
+
+        d.vx *= 0.92;
+        d.vy *= 0.92;
+
+        d.x += d.vx;
+        d.y += d.vy;
+
+        // draw dot
+        ctx.fillStyle = "rgba(0,255,255,0.25)";
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 2.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // connect dots
+      for (let i = 0; i < allDots.length; i++) {
+        for (let j = i + 1; j < allDots.length; j++) {
+          const dx = allDots[i].x - allDots[j].x;
+          const dy = allDots[i].y - allDots[j].y;
+          if (dx * dx + dy * dy < connectDistance * connectDistance) {
+            ctx.strokeStyle = "rgba(255,255,255,0.07)";
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(allDots[i].x, allDots[i].y);
+            ctx.lineTo(allDots[j].x, allDots[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      frameRef.current = requestAnimationFrame(animate);
+    }
+
+    resize();
+    animate();
+    window.addEventListener("resize", resize);
 
     return () => {
-      if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
-      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(frameRef.current);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
-  // ---------------- Button Click (Simplified) ----------------
-  const handleButtonClick = () => {
-    // Navigate immediately without animation
-    navigate("/dark");
-  };
-
   return (
-    <div
-      className="jet-root App main-container"
-      style={{
-        position: "relative",
-        width: "100%",
-        minHeight: "100vh" // allow page to scroll if content grows
-      }}
-    >
-      <canvas
-        ref={canvasRef}
-        style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
-      ></canvas>
-
-      <h1
-        className="typing-text"
-        ref={textRef}
-        style={{
-          position: "absolute",
-          top: "40vh",
-          width: "100%",
-          textAlign: "center",
-          fontSize: "3rem",
-          zIndex: 2,
-          color: "white",
-        }}
-      ></h1>
-
-      <button
-        className={`more-info-button`}
-        onClick={handleButtonClick}
-        style={{
-          position: "absolute",
-          top: "60vh",
-          left: "50%",
-          transform: "translateX(-50%)",
-          padding: "12px 25px",
-          fontSize: "1.2rem",
-          backgroundColor: "rgba(1, 8, 8, 0.7)",
-          border: "1px solid rgba(236, 242, 242, 0.9)",
-          borderRadius: "5px",
-          color: "white",
-          cursor: "pointer",
-          zIndex: 3,
-          transition: "all 0.3s ease",
-        }}
-      >
-        Wanna know more.
-      </button>
-
-      <div
-        className="circle-cursor"
-        ref={cursorRef}
-        style={{
-          position: "fixed",
-          left: "-100px",
-          top: "-100px",
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          pointerEvents: "none",
-          transform: "translate(-50%, -50%)",
-          zIndex: 1000,
-          backgroundColor: "#00ffff",
-        }}
-      ></div>
-
-      {/* The merge-cut overlay has been removed */}
-    </div>
+    <JetRoot>
+      <MainContainer>
+        <StyledCanvas ref={canvasRef} />
+        <TypingText ref={textRef} />
+        <MoreInfoButton onClick={() => navigate("/dark")}>
+          Wanna know more.
+        </MoreInfoButton>
+        <CircleCursor ref={cursorRef} />
+      </MainContainer>
+    </JetRoot>
   );
 }
