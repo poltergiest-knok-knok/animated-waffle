@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { keyframes } from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 // Import project-specific background images from local assets
 import finportImg from "./assets/Finport.png";
@@ -69,15 +70,31 @@ const Container = styled.div`
   padding: 60px 40px;
   max-width: 1400px;
   margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    padding: 40px 20px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 30px 15px;
+  }
 `;
 
 const Header = styled(motion.div)`
   text-align: center;
   margin-bottom: 80px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 60px;
+  }
+  
+  @media (max-width: 480px) {
+    margin-bottom: 40px;
+  }
 `;
 
 const MainTitle = styled(motion.h1)`
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(1.8rem, 5vw, 4rem);
   margin-bottom: 20px;
   background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ff00);
   background-size: 400% 400%;
@@ -86,6 +103,11 @@ const MainTitle = styled(motion.h1)`
   background-clip: text;
   animation: ${textShimmer} 3s linear infinite;
   filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.5));
+  
+  @media (max-width: 480px) {
+    font-size: clamp(1.4rem, 6vw, 2rem);
+    margin-bottom: 15px;
+  }
 `;
 
 const Subtitle = styled(motion.p)`
@@ -93,6 +115,15 @@ const Subtitle = styled(motion.p)`
   color: #00eaff;
   opacity: 0.8;
   text-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+  
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    padding: 0 10px;
+  }
 `;
 
 const ProjectsGrid = styled(motion.div)`
@@ -100,6 +131,17 @@ const ProjectsGrid = styled(motion.div)`
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 60px;
   margin-bottom: 100px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    margin-bottom: 80px;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 30px;
+    margin-bottom: 60px;
+  }
 `;
 
 const ProjectShowcase = styled(motion.div)`
@@ -107,6 +149,14 @@ const ProjectShowcase = styled(motion.div)`
   height: 500px;
   perspective: 1000px;
   cursor: pointer;
+  
+  @media (max-width: 768px) {
+    height: 400px;
+  }
+  
+  @media (max-width: 480px) {
+    height: 350px;
+  }
 `;
 
 const ProjectImage = styled(motion.div)`
@@ -155,6 +205,14 @@ const ProjectInfo = styled(motion.div)`
   padding: 30px;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
   z-index: 10;
+  
+  @media (max-width: 768px) {
+    padding: 25px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 20px;
+  }
 `;
 
 const ProjectTitle = styled(motion.h3)`
@@ -162,6 +220,16 @@ const ProjectTitle = styled(motion.h3)`
   color: #00ff00;
   margin-bottom: 15px;
   text-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+  
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
 `;
 
 const ProjectDesc = styled(motion.p)`
@@ -170,6 +238,17 @@ const ProjectDesc = styled(motion.p)`
   margin-bottom: 15px;
   line-height: 1.6;
   text-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+  
+  @media (max-width: 768px) {
+    font-size: 0.7rem;
+    margin-bottom: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.65rem;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
 `;
 
 const TechStack = styled(motion.div)`
@@ -177,6 +256,11 @@ const TechStack = styled(motion.div)`
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 20px;
+  
+  @media (max-width: 480px) {
+    gap: 6px;
+    margin-bottom: 15px;
+  }
 `;
 
 const TechTag = styled(motion.span)`
@@ -187,6 +271,11 @@ const TechTag = styled(motion.span)`
   font-size: 0.6rem;
   color: #ff00ff;
   text-shadow: 0 0 8px rgba(255, 0, 255, 0.5);
+  
+  @media (max-width: 480px) {
+    padding: 4px 8px;
+    font-size: 0.55rem;
+  }
 `;
 
 const ProjectLink = styled(motion.a)`
@@ -207,6 +296,18 @@ const ProjectLink = styled(motion.a)`
     transform: scale(1.05);
     box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
   }
+  
+  @media (max-width: 768px) {
+    padding: 10px 20px;
+    font-size: 0.65rem;
+    gap: 8px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 8px 16px;
+    font-size: 0.6rem;
+    gap: 6px;
+  }
 `;
 
 const FloatingElement = styled(motion.div)`
@@ -219,6 +320,16 @@ const FloatingElement = styled(motion.div)`
   opacity: 0.6;
   animation: ${floatingAnimation} ${props => props.duration}s ease-in-out infinite;
   z-index: 1;
+  
+  @media (max-width: 768px) {
+    width: ${props => props.size * 0.7}px;
+    height: ${props => props.size * 0.7}px;
+    opacity: 0.4;
+  }
+  
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
 const SkillsShowcase = styled(motion.div)`
@@ -240,6 +351,17 @@ const SkillsShowcase = styled(motion.div)`
     background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
     animation: ${textShimmer} 8s linear infinite;
   }
+  
+  @media (max-width: 768px) {
+    padding: 35px;
+    border-radius: 20px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 25px;
+    border-radius: 15px;
+    margin: 0 10px;
+  }
 `;
 
 const SkillsTitle = styled(motion.h2)`
@@ -249,6 +371,16 @@ const SkillsTitle = styled(motion.h2)`
   text-shadow: 0 0 20px rgba(255, 255, 0, 0.7);
   position: relative;
   z-index: 2;
+  
+  @media (max-width: 768px) {
+    font-size: 1.6rem;
+    margin-bottom: 25px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
 `;
 
 const SkillsGrid = styled(motion.div)`
@@ -257,6 +389,16 @@ const SkillsGrid = styled(motion.div)`
   gap: 30px;
   position: relative;
   z-index: 2;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 `;
 
 const SkillCategory = styled(motion.div)`
@@ -268,6 +410,16 @@ const SkillLabel = styled.h4`
   font-size: 1rem;
   margin-bottom: 15px;
   text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+  }
 `;
 
 const SkillList = styled.p`
@@ -275,6 +427,51 @@ const SkillList = styled.p`
   font-size: 0.7rem;
   line-height: 1.8;
   text-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+  
+  @media (max-width: 768px) {
+    font-size: 0.65rem;
+    line-height: 1.6;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.6rem;
+    line-height: 1.5;
+  }
+`;
+
+const BackButton = styled(motion.button)`
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  background: linear-gradient(45deg, #ff00ff, #00ffff);
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
+  }
+  
+  @media (max-width: 768px) {
+    top: 20px;
+    left: 20px;
+    padding: 10px 16px;
+    font-size: 0.55rem;
+  }
+  
+  @media (max-width: 480px) {
+    top: 15px;
+    left: 15px;
+    padding: 8px 12px;
+    font-size: 0.5rem;
+  }
 `;
 
 // =================================================
@@ -380,6 +577,7 @@ const projectVariants = {
 
 export default function Web() {
   const [selectedProject, setSelectedProject] = useState(null);
+  const navigate = useNavigate();
 
   return (
     <Portfolio
@@ -387,6 +585,16 @@ export default function Web() {
       initial="hidden"
       animate="visible"
     >
+      <BackButton
+        onClick={() => navigate('/dark')}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        ← Back
+      </BackButton>
       {/* Floating Background Elements */}
       <FloatingElement 
         size={100} 
