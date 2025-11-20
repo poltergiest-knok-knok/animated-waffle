@@ -246,7 +246,7 @@ const NavigationButton = styled.button`
   border: 3px solid #00ffff;
   text-transform: uppercase;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px;
   transition: all 0.3s ease;
   animation: ${blinkBorder} 3s infinite;
   box-shadow: 0 0 15px #00ffff, inset 0 0 10px rgba(0, 255, 255, 0.1);
@@ -269,12 +269,12 @@ const NavigationButton = styled.button`
 
   @media (max-width: 768px) {
     padding: 12px 24px;
-    font-size: 10px;
+    font-size: 14px;
   }
   
   @media (max-width: 480px) {
     padding: 10px 20px;
-    font-size: 8px;
+    font-size: 12px;
     width: 250px;
   }
 `;
@@ -292,6 +292,8 @@ const ActionButtons = styled.div`
     color: #ff00ff;
     box-shadow: 0 0 10px #ff00ff;
     transition: 0.3s;
+    font-size: 16px;
+    font-family: "Press Start 2P", monospace;
 
     &:hover {
       background-color: #ff00ff;
@@ -306,6 +308,13 @@ const ActionButtons = styled.div`
     p {
       width: 80%;
       margin: 0 auto;
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    p {
+      font-size: 12px;
     }
   }
 `;
