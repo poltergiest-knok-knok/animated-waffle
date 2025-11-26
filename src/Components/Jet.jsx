@@ -269,7 +269,7 @@ export default function Jet() {
         <StyledCanvas ref={canvasRef} />
         <TypingText ref={textRef} />
         <MoreInfoButton onClick={() => navigate("/dark")}>
-          Wanna know more.
+          f#ck me more.
         </MoreInfoButton>
         <CircleCursor ref={cursorRef} />
       </MainContainer>
