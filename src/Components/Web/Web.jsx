@@ -8,6 +8,7 @@ import finportImg from "./assets/Finport.png";
 import vinwearImg from "./assets/1000styles.png";
 import squareImg from "./assets/Square.png";
 import gjmicImg from "./assets/GJMIC.png";
+import GlassButton from "../Shared/GlassButton";
 
 // ============== KEYFRAME EFFECTS =================
 
@@ -42,25 +43,27 @@ const textShimmer = keyframes`
 
 const Portfolio = styled(motion.div)`
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  background: #000;
   color: white;
-  font-family: 'Press Start 2P', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   position: relative;
   overflow-x: hidden;
   
+  /* Abstract Background Blobs */
   &::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
     background: 
-      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+      radial-gradient(circle at 50% 50%, rgba(76, 29, 149, 0.15), transparent 50%),
+      radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.15), transparent 50%),
+      radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.15), transparent 50%);
+    filter: blur(60px);
+    z-index: 0;
     pointer-events: none;
-    z-index: 1;
   }
 `;
 
@@ -94,35 +97,35 @@ const Header = styled(motion.div)`
 `;
 
 const MainTitle = styled(motion.h1)`
-  font-size: clamp(1.8rem, 5vw, 4rem);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
   margin-bottom: 20px;
-  background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ff00);
-  background-size: 400% 400%;
+  background: linear-gradient(135deg, #fff 0%, #ccc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: ${textShimmer} 3s linear infinite;
-  filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.5));
+  letter-spacing: -2px;
   
   @media (max-width: 480px) {
-    font-size: clamp(1.4rem, 6vw, 2rem);
+    font-size: clamp(2rem, 8vw, 3rem);
     margin-bottom: 15px;
   }
 `;
 
 const Subtitle = styled(motion.p)`
-  font-size: 1rem;
-  color: #00eaff;
-  opacity: 0.8;
-  text-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
   
   @media (max-width: 768px) {
-    font-size: 0.8rem;
+    font-size: 1rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 0.7rem;
-    padding: 0 10px;
+    font-size: 0.9rem;
+    padding: 0 20px;
   }
 `;
 
@@ -147,8 +150,27 @@ const ProjectsGrid = styled(motion.div)`
 const ProjectShowcase = styled(motion.div)`
   position: relative;
   height: 600px;
-  perspective: 1000px;
+  /* Removed perspective to prevent 3D blur */
   cursor: pointer;
+  border-radius: 30px;
+  overflow: hidden;
+  will-change: transform;
+  
+  /* Prism Glass Card */
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  transition: all 0.4s ease;
+  
+  &:hover {
+    border-color: rgba(${props => props.glowColor || '0, 255, 255'}, 0.6);
+    box-shadow: 
+      0 20px 40px rgba(0,0,0,0.4),
+      0 0 30px rgba(${props => props.glowColor || '0, 255, 255'}, 0.4),
+      0 0 60px rgba(${props => props.glowColor || '0, 255, 255'}, 0.2);
+    transform: translateY(-10px); /* Clean 2D lift */
+  }
   
   @media (max-width: 768px) {
     height: 450px;
@@ -165,64 +187,46 @@ const ProjectShowcase = styled(motion.div)`
 const ProjectImage = styled(motion.div)`
   width: 100%;
   height: 100%;
-  border-radius: 20px;
+  /* Border radius handled by parent overflow: hidden */
   background-image: url(${props => props.bgImage});
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: local;
   position: relative;
-  overflow: hidden;
-  border: 3px solid rgba(0, 255, 255, 0.3);
-  animation: ${glowPulse} 4s ease-in-out infinite;
+  transition: transform 0.5s ease; /* Smooth zoom transition */
+  
+  /* Zoom effect on hover */
+  ${ProjectShowcase}:hover & {
+    transform: scale(1.05);
+  }
   
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0.3) 50%,
-      rgba(0, 0, 0, 0.8) 100%
+      to bottom,
+      transparent 0%,
+      rgba(0, 0, 0, 0.6) 100%
     );
     transition: all 0.4s ease;
   }
   
-  &:hover::before {
+  ${ProjectShowcase}:hover &::before {
     background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.4) 0%,
-      rgba(0, 0, 0, 0.1) 50%,
-      rgba(0, 0, 0, 0.4) 100%
+      to bottom,
+      transparent 0%,
+      rgba(0, 0, 0, 0.8) 100%
     );
   }
   
   @media (max-width: 768px) {
     height: 100%;
     flex-shrink: 0;
-    background-attachment: scroll;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    
-    &::before {
-      background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.4) 0%,
-        rgba(0, 0, 0, 0.1) 50%,
-        rgba(0, 0, 0, 0.4) 100%
-      );
-    }
   }
   
   @media (max-width: 480px) {
     height: 100%;
-    background-size: cover !important;
-    background-position: center center !important;
   }
 `;
 
@@ -231,14 +235,23 @@ const ProjectInfo = styled(motion.div)`
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 30px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  padding: 40px;
   z-index: 10;
   
+  /* Prism Glass Card inside image */
+  background: rgba(10, 10, 10, 0.7); /* Slightly darker for better text contrast */
+  backdrop-filter: blur(15px); /* Reduced blur */
+  -webkit-backdrop-filter: blur(15px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+  transform: translateZ(0); /* Hardware acceleration for text sharpness */
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  
   @media (max-width: 768px) {
-    padding: 25px;
+    padding: 30px;
     position: relative;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(20, 20, 20, 0.8);
     transform: none !important;
     opacity: 1 !important;
   }
@@ -249,38 +262,33 @@ const ProjectInfo = styled(motion.div)`
 `;
 
 const ProjectTitle = styled(motion.h3)`
-  font-size: 1.5rem;
-  color: #00ff00;
-  margin-bottom: 15px;
-  text-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+  font-size: 2rem;
+  color: #fff;
+  margin-bottom: 10px;
+  font-weight: 700;
   
   @media (max-width: 768px) {
-    font-size: 1.2rem;
-    margin-bottom: 12px;
+    font-size: 1.5rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 1rem;
-    margin-bottom: 10px;
+    font-size: 1.2rem;
   }
 `;
 
 const ProjectDesc = styled(motion.p)`
-  font-size: 0.8rem;
-  color: #00eaff;
-  margin-bottom: 15px;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
   line-height: 1.6;
-  text-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+  font-weight: 400;
   
   @media (max-width: 768px) {
-    font-size: 0.7rem;
-    margin-bottom: 12px;
+    font-size: 0.9rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 0.65rem;
-    margin-bottom: 10px;
-    line-height: 1.4;
+    font-size: 0.8rem;
   }
 `;
 
@@ -297,51 +305,22 @@ const TechStack = styled(motion.div)`
 `;
 
 const TechTag = styled(motion.span)`
-  background: linear-gradient(45deg, rgba(255, 0, 255, 0.2), rgba(0, 255, 255, 0.2));
-  border: 1px solid rgba(255, 0, 255, 0.5);
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-size: 0.6rem;
-  color: #ff00ff;
-  text-shadow: 0 0 8px rgba(255, 0, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   
   @media (max-width: 480px) {
-    padding: 4px 8px;
-    font-size: 0.55rem;
+    padding: 4px 10px;
+    font-size: 0.7rem;
   }
 `;
 
-const ProjectLink = styled(motion.a)`
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 25px;
-  background: linear-gradient(45deg, #ff00ff, #00ffff);
-  color: #000;
-  text-decoration: none;
-  border-radius: 25px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
-  
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
-  }
-  
-  @media (max-width: 768px) {
-    padding: 10px 20px;
-    font-size: 0.65rem;
-    gap: 8px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 8px 16px;
-    font-size: 0.6rem;
-    gap: 6px;
-  }
-`;
+
 
 const FloatingElement = styled(motion.div)`
   position: absolute;
@@ -366,53 +345,51 @@ const FloatingElement = styled(motion.div)`
 `;
 
 const SkillsShowcase = styled(motion.div)`
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  border-radius: 30px;
-  padding: 50px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.02)
+  );
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  padding: 60px;
   text-align: center;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  transition: all 0.4s ease;
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
-    animation: ${textShimmer} 8s linear infinite;
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 
+      0 20px 40px rgba(0,0,0,0.3),
+      0 0 30px rgba(255, 255, 255, 0.05);
   }
   
   @media (max-width: 768px) {
-    padding: 35px;
-    border-radius: 20px;
+    padding: 40px;
+    border-radius: 30px;
   }
   
   @media (max-width: 480px) {
-    padding: 25px;
-    border-radius: 15px;
-    margin: 0 10px;
+    padding: 30px;
+    border-radius: 20px;
   }
 `;
 
 const SkillsTitle = styled(motion.h2)`
-  font-size: 2rem;
-  color: #ffff00;
-  margin-bottom: 30px;
-  text-shadow: 0 0 20px rgba(255, 255, 0, 0.7);
-  position: relative;
-  z-index: 2;
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 40px;
+  font-weight: 700;
   
   @media (max-width: 768px) {
-    font-size: 1.6rem;
-    margin-bottom: 25px;
+    font-size: 2rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 1.3rem;
-    margin-bottom: 20px;
+    font-size: 1.5rem;
   }
 `;
 
@@ -439,73 +416,27 @@ const SkillCategory = styled(motion.div)`
 `;
 
 const SkillLabel = styled.h4`
-  color: #00ff00;
-  font-size: 1rem;
+  color: #fff;
+  font-size: 1.2rem;
   margin-bottom: 15px;
-  text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  font-weight: 600;
   
   @media (max-width: 768px) {
-    font-size: 0.9rem;
-    margin-bottom: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.8rem;
-    margin-bottom: 10px;
+    font-size: 1.1rem;
   }
 `;
 
 const SkillList = styled.p`
-  color: #00eaff;
-  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
   line-height: 1.8;
-  text-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
   
   @media (max-width: 768px) {
-    font-size: 0.65rem;
-    line-height: 1.6;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.6rem;
-    line-height: 1.5;
+    font-size: 0.85rem;
   }
 `;
 
-const BackButton = styled(motion.button)`
-  position: fixed;
-  top: 30px;
-  left: 30px;
-  background: linear-gradient(45deg, #ff00ff, #00ffff);
-  color: #000;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 25px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.6rem;
-  cursor: pointer;
-  z-index: 1000;
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
-  
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
-  }
-  
-  @media (max-width: 768px) {
-    top: 20px;
-    left: 20px;
-    padding: 10px 16px;
-    font-size: 0.55rem;
-  }
-  
-  @media (max-width: 480px) {
-    top: 15px;
-    left: 15px;
-    padding: 8px 12px;
-    font-size: 0.5rem;
-  }
-`;
+
 
 // =================================================
 //                 DATA
@@ -524,7 +455,7 @@ const projects = [
     name: "Vinwear",
     description: "Modern e-commerce platform for fashion enthusiasts with AI-powered recommendations and seamless shopping experience.",
     tech: ["Svelte", "Express", "MongoDB", "Stripe", "CloudinaryAPI"],
-    role: "Full Stack Developer", 
+    role: "Full Stack Developer",
     link: "https://1000styles.netlify.app/",
     image: vinwearImg
   },
@@ -552,6 +483,16 @@ const skills = {
   database: "PostgreSQL, MongoDB, Redis, Prisma ORM, Mongoose, Firebase",
   tools: "Git, AWS, Netlify, Vercel, Docker, Kubernetes, CI/CD, Jest, Cypress"
 };
+
+const neonColors = [
+  "255, 20, 147", // Deep Pink
+  "0, 255, 255",  // Cyan
+  "255, 0, 255",  // Magenta
+  "57, 255, 20",  // Neon Green
+  "255, 255, 0",  // Yellow
+  "138, 43, 226", // Blue Violet
+  "255, 69, 0"    // Orange Red
+];
 
 // =================================================
 //               MOTION VARIANTS
@@ -581,25 +522,14 @@ const itemVariants = {
 };
 
 const projectVariants = {
-  hidden: { rotateY: -15, opacity: 0, scale: 0.8 },
+  hidden: { opacity: 0, scale: 0.9 },
   visible: {
-    rotateY: 0,
     opacity: 1,
     scale: 1,
     transition: {
       type: "spring",
       stiffness: 100,
       damping: 15
-    }
-  },
-  hover: {
-    rotateY: 5,
-    rotateX: 5,
-    scale: 1.02,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 20
     }
   }
 };
@@ -610,6 +540,7 @@ const projectVariants = {
 
 export default function Web() {
   const [selectedProject, setSelectedProject] = useState(null);
+  const [glowColor, setGlowColor] = useState("0, 255, 255"); // Default Cyan
   const navigate = useNavigate();
 
   return (
@@ -618,32 +549,27 @@ export default function Web() {
       initial="hidden"
       animate="visible"
     >
-      <BackButton
-        onClick={() => navigate('/dark')}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        ← Back
-      </BackButton>
+      <div style={{ position: 'fixed', top: '30px', left: '30px', zIndex: 1000 }}>
+        <GlassButton onClick={() => navigate('/dark')}>
+          ← Back
+        </GlassButton>
+      </div>
       {/* Floating Background Elements */}
-      <FloatingElement 
-        size={100} 
-        color="rgba(0, 255, 255, 0.1)" 
+      <FloatingElement
+        size={100}
+        color="rgba(0, 255, 255, 0.1)"
         duration={6}
         style={{ top: '10%', left: '10%' }}
       />
-      <FloatingElement 
-        size={150} 
-        color="rgba(255, 0, 255, 0.1)" 
+      <FloatingElement
+        size={150}
+        color="rgba(255, 0, 255, 0.1)"
         duration={8}
         style={{ top: '60%', right: '10%' }}
       />
-      <FloatingElement 
-        size={80} 
-        color="rgba(255, 255, 0, 0.1)" 
+      <FloatingElement
+        size={80}
+        color="rgba(255, 255, 0, 0.1)"
         duration={7}
         style={{ bottom: '20%', left: '20%' }}
       />
@@ -672,22 +598,20 @@ export default function Web() {
               key={index}
               variants={projectVariants}
               whileHover="hover"
-              onHoverStart={() => setSelectedProject(index)}
+              onHoverStart={() => {
+                setSelectedProject(index);
+                const randomColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+                setGlowColor(randomColor);
+              }}
               onHoverEnd={() => setSelectedProject(null)}
+              glowColor={glowColor}
             >
-              <ProjectImage 
-                bgImage={project.image}
-                animate={{
-                  scale: selectedProject === index ? 1.02 : 1,
-                  filter: selectedProject === index ? "brightness(1.1)" : "brightness(1)"
-                }}
-                transition={{ duration: 0.3 }}
-              >
+              <ProjectImage bgImage={project.image}>
                 <ProjectInfo
                   initial={{ y: 100, opacity: 0 }}
-                  animate={{ 
-                    y: selectedProject === index ? 0 : 50, 
-                    opacity: selectedProject === index ? 1 : 0.8 
+                  animate={{
+                    y: selectedProject === index ? 0 : 50,
+                    opacity: selectedProject === index ? 1 : 0.8
                   }}
                   transition={{ duration: 0.4 }}
                   style={{
@@ -701,7 +625,7 @@ export default function Web() {
                   <ProjectDesc>{project.description}</ProjectDesc>
                   <TechStack>
                     {project.tech.map((tech, i) => (
-                      <TechTag 
+                      <TechTag
                         key={i}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -711,14 +635,14 @@ export default function Web() {
                       </TechTag>
                     ))}
                   </TechStack>
-                  <ProjectLink 
-                    href={project.link} 
+                  <GlassButton
+                    as="a"
+                    href={project.link}
                     target="_blank"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+                    style={{ display: 'inline-flex', textDecoration: 'none' }}
                   >
                     Explore Project →
-                  </ProjectLink>
+                  </GlassButton>
                 </ProjectInfo>
               </ProjectImage>
             </ProjectShowcase>

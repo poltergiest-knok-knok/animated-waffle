@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
+import GlassButton from "../Shared/GlassButton";
 
 // ============== KEYFRAME EFFECTS =================
 
@@ -50,40 +51,27 @@ const pulseRing = keyframes`
 
 const CinemaContainer = styled(motion.div)`
   min-height: 100vh;
-  background: 
-    radial-gradient(circle at 25% 25%, #1a0033 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, #330066 0%, transparent 50%),
-    linear-gradient(135deg, #000000 0%, #0f0f23 50%, #1a1a3a 100%);
+  background: #000;
   color: white;
-  font-family: 'Press Start 2P', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   position: relative;
   overflow-x: hidden;
   
+  /* Abstract Background Blobs */
   &::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
     background: 
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(255, 20, 147, 0.03) 2px,
-        rgba(255, 20, 147, 0.03) 4px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 191, 255, 0.03) 2px,
-        rgba(0, 191, 255, 0.03) 4px
-      );
+      radial-gradient(circle at 30% 30%, rgba(255, 20, 147, 0.15), transparent 50%),
+      radial-gradient(circle at 70% 70%, rgba(0, 191, 255, 0.15), transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.15), transparent 50%);
+    filter: blur(60px);
+    z-index: 0;
     pointer-events: none;
-    z-index: 1;
-    animation: ${filmGrain} 2s infinite;
   }
 `;
 
@@ -103,41 +91,6 @@ const Container = styled.div`
   }
 `;
 
-const BackButton = styled(motion.button)`
-  position: fixed;
-  top: 30px;
-  left: 30px;
-  background: linear-gradient(45deg, #ff1493, #00bfff);
-  color: #000;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 25px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.6rem;
-  cursor: pointer;
-  z-index: 1000;
-  box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
-  
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.6);
-  }
-  
-  @media (max-width: 768px) {
-    top: 20px;
-    left: 20px;
-    padding: 10px 16px;
-    font-size: 0.55rem;
-  }
-  
-  @media (max-width: 480px) {
-    top: 15px;
-    left: 15px;
-    padding: 8px 12px;
-    font-size: 0.5rem;
-  }
-`;
-
 const CinemaHeader = styled(motion.div)`
   text-align: center;
   margin-bottom: 80px;
@@ -153,51 +106,35 @@ const CinemaHeader = styled(motion.div)`
 `;
 
 const CinemaTitle = styled(motion.h1)`
-  font-size: clamp(1.8rem, 5vw, 4.5rem);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
   margin-bottom: 20px;
-  background: linear-gradient(45deg, #ff1493, #00bfff, #ffff00, #ff6347);
-  background-size: 400% 400%;
+  background: linear-gradient(135deg, #fff 0%, #ccc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: ${textReveal} 8s linear infinite;
-  filter: drop-shadow(0 0 30px rgba(255, 20, 147, 0.6));
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
-    background: linear-gradient(45deg, transparent, rgba(255, 20, 147, 0.1), transparent);
-    animation: ${cinemaFlicker} 4s ease-in-out infinite;
-    z-index: -1;
-  }
+  letter-spacing: -2px;
   
   @media (max-width: 480px) {
-    font-size: clamp(1.4rem, 6vw, 2rem);
+    font-size: clamp(2rem, 8vw, 3rem);
     margin-bottom: 15px;
   }
 `;
 
 const CinemaSubtitle = styled(motion.p)`
   font-size: 1.2rem;
-  color: #00bfff;
-  opacity: 0.9;
-  text-shadow: 
-    0 0 10px rgba(0, 191, 255, 0.5),
-    0 0 20px rgba(0, 191, 255, 0.3),
-    0 0 30px rgba(0, 191, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
   
   @media (max-width: 768px) {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 0.8rem;
-    padding: 0 10px;
+    font-size: 0.9rem;
+    padding: 0 20px;
   }
 `;
 
@@ -220,41 +157,20 @@ const VideoCategories = styled(motion.div)`
   }
 `;
 
-const CategoryButton = styled(motion.button)`
-  padding: 15px 30px;
-  background: ${props => props.active 
-    ? 'linear-gradient(45deg, #ff1493, #00bfff)' 
-    : 'rgba(255, 20, 147, 0.1)'};
-  color: ${props => props.active ? '#000' : '#ff1493'};
-  border: 2px solid #ff1493;
-  border-radius: 25px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  
-  &:hover {
-    background: linear-gradient(45deg, #ff1493, #00bfff);
-    color: #000;
-    box-shadow: 0 0 25px rgba(255, 20, 147, 0.5);
-  }
-  
-  @media (max-width: 768px) {
-    padding: 12px 24px;
-    font-size: 0.7rem;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 10px 20px;
-    font-size: 0.65rem;
-    width: 250px;
-  }
+const StyledCategoryButton = styled(GlassButton)`
+  background: ${props => props.active
+    ? 'rgba(255, 255, 255, 0.2)'
+    : 'rgba(255, 255, 255, 0.05)'};
+  border: 1px solid ${props => props.active
+    ? 'rgba(255, 255, 255, 0.4)'
+    : 'rgba(255, 255, 255, 0.1)'};
 `;
 
 const VideoGrid = styled(motion.div)`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: ${props => props.format === 'short'
+    ? 'repeat(auto-fit, minmax(300px, 1fr))'
+    : 'repeat(auto-fit, minmax(500px, 1fr))'};
   gap: 40px;
   margin-bottom: 100px;
   
@@ -272,21 +188,28 @@ const VideoGrid = styled(motion.div)`
 
 const VideoShowcase = styled(motion.div)`
   position: relative;
-  height: 450px;
-  perspective: 1000px;
+  width: 100%;
+  aspect-ratio: ${props => props.format === 'short' ? '9/16' : '16/9'};
+  /* Removed perspective to prevent 3D blur */
   cursor: pointer;
-  border-radius: 25px;
+  border-radius: 30px;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(0, 191, 255, 0.1));
-  border: 3px solid rgba(255, 20, 147, 0.3);
-  animation: ${neonGlow} 6s ease-in-out infinite;
+  will-change: transform;
   
-  @media (max-width: 768px) {
-    height: 350px;
-  }
+  /* Prism Glass Card */
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  transition: all 0.4s ease;
   
-  @media (max-width: 480px) {
-    height: 300px;
+  &:hover {
+    border-color: rgba(${props => props.glowColor || '255, 20, 147'}, 0.6);
+    box-shadow: 
+      0 20px 40px rgba(0,0,0,0.4),
+      0 0 30px rgba(${props => props.glowColor || '255, 20, 147'}, 0.4),
+      0 0 60px rgba(${props => props.glowColor || '255, 20, 147'}, 0.2);
+    transform: translateY(-10px); /* Clean 2D lift */
   }
 `;
 
@@ -298,12 +221,23 @@ const VideoThumbnail = styled(motion.div)`
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background-image: url(${props => props.thumbnail});
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.5s ease; /* Smooth zoom transition */
+  
+  /* Zoom effect on hover */
+  ${VideoShowcase}:hover & {
+    transform: scale(1.05);
+  }
   
   iframe {
     width: 100%;
     height: 100%;
     border: none;
     border-radius: 20px;
+    position: relative;
+    z-index: 5;
   }
   
   &::before {
@@ -315,18 +249,16 @@ const VideoThumbnail = styled(motion.div)`
     bottom: 0;
     background: linear-gradient(
       135deg,
-      rgba(0, 0, 0, 0.3) 0%,
-      rgba(0, 0, 0, 0.1) 50%,
-      rgba(0, 0, 0, 0.3) 100%
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
+      rgba(0, 0, 0, 0.6) 100%
     );
     z-index: 1;
-    opacity: 0;
     transition: opacity 0.3s ease;
-    pointer-events: none;
   }
   
   &:hover::before {
-    opacity: 1;
+    opacity: 0.8;
   }
 `;
 
@@ -334,17 +266,18 @@ const PlayButton = styled(motion.div)`
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  /* transform is handled by framer-motion initial prop to avoid conflicts */
   width: 120px;
   height: 120px;
-  background: linear-gradient(45deg, rgba(255, 20, 147, 0.9), rgba(0, 191, 255, 0.9));
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 2;
-  opacity: 0;
   transition: opacity 0.3s ease;
   
   &::before {
@@ -352,7 +285,7 @@ const PlayButton = styled(motion.div)`
     position: absolute;
     width: 100%;
     height: 100%;
-    border: 3px solid rgba(255, 20, 147, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     animation: ${pulseRing} 2s infinite;
   }
@@ -360,7 +293,7 @@ const PlayButton = styled(motion.div)`
   &::after {
     content: '▶';
     font-size: 2.5rem;
-    color: #000;
+    color: #fff;
     margin-left: 8px;
   }
   
@@ -389,8 +322,17 @@ const VideoInfo = styled(motion.div)`
   left: 0;
   right: 0;
   padding: 30px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
   z-index: 10;
+  
+  /* Prism Glass Card inside */
+  background: rgba(10, 10, 10, 0.7); /* Slightly darker for better text contrast */
+  backdrop-filter: blur(15px); /* Reduced blur to help with text sharpness */
+  -webkit-backdrop-filter: blur(15px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+  transform: translateZ(0); /* Hardware acceleration for text sharpness */
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
   
   @media (max-width: 768px) {
     padding: 25px;
@@ -403,120 +345,72 @@ const VideoInfo = styled(motion.div)`
 
 const VideoTitle = styled(motion.h3)`
   font-size: 1.4rem;
-  color: #ffff00;
-  margin-bottom: 15px;
-  text-shadow: 0 0 15px rgba(255, 255, 0, 0.7);
+  color: #fff;
+  margin-bottom: 10px;
+  font-weight: 700;
   
   @media (max-width: 768px) {
     font-size: 1.2rem;
-    margin-bottom: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 1rem;
-    margin-bottom: 10px;
   }
 `;
 
 const VideoDesc = styled(motion.p)`
-  font-size: 0.8rem;
-  color: #00bfff;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 15px;
   line-height: 1.6;
-  text-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
   
   @media (max-width: 768px) {
-    font-size: 0.7rem;
-    margin-bottom: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.65rem;
-    margin-bottom: 10px;
-    line-height: 1.4;
-  }
-`;
-
-const VideoLink = styled(motion.a)`
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 25px;
-  background: linear-gradient(45deg, #ff1493, #00bfff);
-  color: #000;
-  text-decoration: none;
-  border-radius: 25px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
-  
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.6);
-  }
-  
-  @media (max-width: 768px) {
-    padding: 10px 20px;
-    font-size: 0.65rem;
-    gap: 8px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 8px 16px;
-    font-size: 0.6rem;
-    gap: 6px;
+    font-size: 0.8rem;
   }
 `;
 
 const SpecsShowcase = styled(motion.div)`
-  background: linear-gradient(135deg, rgba(255, 20, 147, 0.1) 0%, rgba(0, 191, 255, 0.1) 100%);
-  border: 2px solid rgba(255, 20, 147, 0.3);
-  border-radius: 30px;
-  padding: 50px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.02)
+  );
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  padding: 60px;
   text-align: center;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  transition: all 0.4s ease;
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255, 20, 147, 0.1), transparent);
-    animation: ${textReveal} 12s linear infinite;
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 
+      0 20px 40px rgba(0,0,0,0.3),
+      0 0 30px rgba(255, 255, 255, 0.05);
   }
   
   @media (max-width: 768px) {
-    padding: 35px;
-    border-radius: 20px;
+    padding: 40px;
+    border-radius: 30px;
   }
   
   @media (max-width: 480px) {
-    padding: 25px;
-    border-radius: 15px;
-    margin: 0 10px;
+    padding: 30px;
+    border-radius: 20px;
   }
 `;
 
 const SpecsTitle = styled(motion.h2)`
-  font-size: 2.2rem;
-  color: #ffff00;
-  margin-bottom: 30px;
-  text-shadow: 0 0 20px rgba(255, 255, 0, 0.7);
-  position: relative;
-  z-index: 2;
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 40px;
+  font-weight: 700;
   
   @media (max-width: 768px) {
-    font-size: 1.8rem;
-    margin-bottom: 25px;
+    font-size: 2rem;
   }
   
   @media (max-width: 480px) {
-    font-size: 1.4rem;
-    margin-bottom: 20px;
+    font-size: 1.5rem;
   }
 `;
 
@@ -543,36 +437,23 @@ const SpecCategory = styled(motion.div)`
 `;
 
 const SpecLabel = styled.h4`
-  color: #ff1493;
-  font-size: 1.1rem;
+  color: #fff;
+  font-size: 1.2rem;
   margin-bottom: 15px;
-  text-shadow: 0 0 15px rgba(255, 20, 147, 0.5);
+  font-weight: 600;
   
   @media (max-width: 768px) {
-    font-size: 1rem;
-    margin-bottom: 12px;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.9rem;
-    margin-bottom: 10px;
+    font-size: 1.1rem;
   }
 `;
 
 const SpecList = styled.p`
-  color: #00bfff;
-  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
   line-height: 1.8;
-  text-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
   
   @media (max-width: 768px) {
-    font-size: 0.7rem;
-    line-height: 1.6;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.65rem;
-    line-height: 1.5;
+    font-size: 0.85rem;
   }
 `;
 
@@ -587,63 +468,72 @@ const videoProjects = {
       description: "High-energy promotional video featuring dynamic transitions, color grading, and synchronized audio for maximum impact.",
       type: "Commercial",
       link: "https://drive.google.com/file/d/1atG4tA2ToM3gQy62abHBn2xlKUxoIgUn/view?usp=drive_link",
-      embedId: "1atG4tA2ToM3gQy62abHBn2xlKUxoIgUn"
+      embedId: "1atG4tA2ToM3gQy62abHBn2xlKUxoIgUn",
+      thumbnail: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Brand Story",
       description: "Compelling narrative-driven content with professional motion graphics and seamless visual storytelling.",
       type: "Marketing",
       link: "https://drive.google.com/file/d/1-NK0xtCaFurfKdVOx6jl7fhPKmWJX04Z/view?usp=drive_link",
-      embedId: "1-NK0xtCaFurfKdVOx6jl7fhPKmWJX04Z"
+      embedId: "1-NK0xtCaFurfKdVOx6jl7fhPKmWJX04Z",
+      thumbnail: "https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Social Media Promo",
       description: "Fast-paced social media content optimized for engagement with trendy cuts and vibrant color schemes.",
       type: "Social Media",
       link: "https://drive.google.com/file/d/1-2n8UcqRxt75bIausHPoPwHSfjJPaBwl/view?usp=drive_link",
-      embedId: "1-2n8UcqRxt75bIausHPoPwHSfjJPaBwl"
+      embedId: "1-2n8UcqRxt75bIausHPoPwHSfjJPaBwl",
+      thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Product Showcase",
       description: "Sleek product demonstration featuring smooth transitions, close-up details, and professional lighting effects.",
       type: "Product Demo",
       link: "https://drive.google.com/file/d/1ZcPSuMzJEOcmhPKSMF5gFp9u5YZvwYRN/view?usp=drive_link",
-      embedId: "1ZcPSuMzJEOcmhPKSMF5gFp9u5YZvwYRN"
+      embedId: "1ZcPSuMzJEOcmhPKSMF5gFp9u5YZvwYRN",
+      thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Event Highlights",
       description: "Dynamic event recap with synchronized beats, crowd reactions, and atmospheric color grading for maximum energy.",
       type: "Event",
       link: "https://drive.google.com/file/d/1gULhVfXtzTwTEQDe9DjyzEkTmotJHfz5/view?usp=drive_link",
-      embedId: "1gULhVfXtzTwTEQDe9DjyzEkTmotJHfz5"
+      embedId: "1gULhVfXtzTwTEQDe9DjyzEkTmotJHfz5",
+      thumbnail: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Creative Trailer",
       description: "Cinematic trailer with dramatic pacing, epic sound design, and Hollywood-style visual effects and transitions.",
       type: "Trailer",
       link: "https://drive.google.com/file/d/1EduKn1LEe-fgyNOn-9_fSjE1fAU9AaU7/view?usp=drive_link",
-      embedId: "1EduKn1LEe-fgyNOn-9_fSjE1fAU9AaU7"
+      embedId: "1EduKn1LEe-fgyNOn-9_fSjE1fAU9AaU7",
+      thumbnail: "https://images.unsplash.com/photo-1478720568477-152d9b164e63?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Fashion Reel",
       description: "Stylish fashion video with rhythmic editing, trendy effects, and mood-driven color palettes for modern aesthetics.",
       type: "Fashion",
       link: "https://drive.google.com/file/d/17AE-hyDxoAYkogmuTm06SVDrm9lii6pD/view?usp=drive_link",
-      embedId: "17AE-hyDxoAYkogmuTm06SVDrm9lii6pD"
+      embedId: "17AE-hyDxoAYkogmuTm06SVDrm9lii6pD",
+      thumbnail: "https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Music Video",
       description: "Beat-synchronized music video featuring creative visual effects, dynamic camera angles, and artistic storytelling.",
       type: "Music Video",
       link: "https://drive.google.com/file/d/1ENuSIjisGMLP_1hiOsDumeAR_hcROj8g/view?usp=drive_link",
-      embedId: "1ENuSIjisGMLP_1hiOsDumeAR_hcROj8g"
+      embedId: "1ENuSIjisGMLP_1hiOsDumeAR_hcROj8g",
+      thumbnail: "https://images.unsplash.com/photo-1514525253440-b393452e8d26?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Tech Demo",
       description: "Modern technology showcase with sleek animations, futuristic transitions, and clean minimalist design aesthetics.",
       type: "Technology",
       link: "https://drive.google.com/file/d/1niEhx022OR91BLSQfF4vuVfJkxVLLmTU/view?usp=drive_link",
-      embedId: "1niEhx022OR91BLSQfF4vuVfJkxVLLmTU"
+      embedId: "1niEhx022OR91BLSQfF4vuVfJkxVLLmTU",
+      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     }
   ],
   long: [
@@ -652,14 +542,16 @@ const videoProjects = {
       description: "Full-length documentary with advanced editing techniques, multicamera synchronization, and immersive sound design.",
       type: "Documentary",
       link: "https://drive.google.com/file/d/1e2vY0CLRAy4iquChpngQsakoR1xPZCM7/view?usp=drive_link",
-      embedId: "1e2vY0CLRAy4iquChpngQsakoR1xPZCM7"
+      embedId: "1e2vY0CLRAy4iquChpngQsakoR1xPZCM7",
+      thumbnail: "https://images.unsplash.com/photo-1533561797500-4fad4750814e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Creative Showcase",
       description: "Artistic video production showcasing advanced visual effects, color theory application, and innovative editing workflows.",
       type: "Artistic",
       link: "https://drive.google.com/file/d/1l0UcpnQWaVJCkULNUSA8TBqeaVMhDSSV/view?usp=drive_link",
-      embedId: "1l0UcpnQWaVJCkULNUSA8TBqeaVMhDSSV"
+      embedId: "1l0UcpnQWaVJCkULNUSA8TBqeaVMhDSSV",
+      thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
     }
   ]
 };
@@ -670,6 +562,16 @@ const expertise = {
   specialties: "Narrative Storytelling, Documentary Production, Commercial Content, Social Media Optimization",
   equipment: "4K/8K Workflows, HDR Processing, Professional Audio Mixing, Advanced Codec Management"
 };
+
+const neonColors = [
+  "255, 20, 147", // Deep Pink
+  "0, 255, 255",  // Cyan
+  "255, 0, 255",  // Magenta
+  "57, 255, 20",  // Neon Green
+  "255, 255, 0",  // Yellow
+  "138, 43, 226", // Blue Violet
+  "255, 69, 0"    // Orange Red
+];
 
 // =================================================
 //               MOTION VARIANTS
@@ -709,17 +611,8 @@ const videoVariants = {
       stiffness: 100,
       damping: 15
     }
-  },
-  hover: {
-    rotateY: 5,
-    rotateX: 5,
-    scale: 1.02,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 20
-    }
   }
+  // Removed hover 3D scaling to fix blurriness
 };
 
 // =================================================
@@ -730,6 +623,8 @@ const Video = memo(() => {
   const [activeCategory, setActiveCategory] = useState('short');
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [playingVideo, setPlayingVideo] = useState(null);
+  const [hoveredPlayButton, setHoveredPlayButton] = useState(null); // Track play button hover
+  const [glowColor, setGlowColor] = useState("255, 20, 147"); // Default Deep Pink
   const navigate = useNavigate();
 
   const handlePlayVideo = useCallback((index) => {
@@ -749,16 +644,11 @@ const Video = memo(() => {
       initial="hidden"
       animate="visible"
     >
-      <BackButton
-        onClick={() => navigate('/dark')}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        ← Back
-      </BackButton>
+      <div style={{ position: 'fixed', top: '30px', left: '30px', zIndex: 1000 }}>
+        <GlassButton onClick={() => navigate('/dark')}>
+          ← Back
+        </GlassButton>
+      </div>
 
       <Container>
         <CinemaHeader variants={itemVariants}>
@@ -779,27 +669,24 @@ const Video = memo(() => {
         </CinemaHeader>
 
         <VideoCategories variants={itemVariants}>
-          <CategoryButton
+          <StyledCategoryButton
             active={activeCategory === 'short'}
             onClick={() => handleCategoryChange('short')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             Short Form
-          </CategoryButton>
-          <CategoryButton
+          </StyledCategoryButton>
+          <StyledCategoryButton
             active={activeCategory === 'long'}
             onClick={() => handleCategoryChange('long')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             Long Form
-          </CategoryButton>
+          </StyledCategoryButton>
         </VideoCategories>
 
         <AnimatePresence mode="wait">
-          <VideoGrid 
+          <VideoGrid
             key={activeCategory}
+            format={activeCategory}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -808,54 +695,68 @@ const Video = memo(() => {
             {currentVideos.map((video, index) => (
               <VideoShowcase
                 key={`${activeCategory}-${index}`}
+                format={activeCategory}
                 variants={videoVariants}
-                whileHover="hover"
-                onHoverStart={() => setSelectedVideo(index)}
+                whileHover={playingVideo === index ? {} : "hover"}
+                onHoverStart={() => {
+                  setSelectedVideo(index);
+                  const randomColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+                  setGlowColor(randomColor);
+                }}
                 onHoverEnd={() => setSelectedVideo(null)}
+                glowColor={glowColor}
               >
-                <VideoThumbnail>
+                <VideoThumbnail thumbnail={video.thumbnail}>
                   {playingVideo === index ? (
                     <iframe
                       src={`https://drive.google.com/file/d/${video.embedId}/preview`}
                       allow="autoplay"
                       allowFullScreen
                       title={video.title}
+                      style={{ pointerEvents: 'auto' }}
                     />
                   ) : (
                     <PlayButton
+                      initial={{ x: "-50%", y: "-50%" }}
                       style={{
                         opacity: selectedVideo === index ? 1 : 0.7
                       }}
                       whileHover={{ scale: 1.1, opacity: 1 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => handlePlayVideo(index)}
+                      onHoverStart={() => setHoveredPlayButton(index)}
+                      onHoverEnd={() => setHoveredPlayButton(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlayVideo(index);
+                      }}
                     />
                   )}
                 </VideoThumbnail>
                 <VideoInfo
                   initial={{ y: 100, opacity: 0 }}
-                  animate={{ 
-                    y: selectedVideo === index ? 0 : 50, 
-                    opacity: selectedVideo === index ? 1 : 0.9 
+                  animate={{
+                    y: playingVideo === index ? 100 : (hoveredPlayButton === index ? 50 : (selectedVideo === index ? 0 : 50)),
+                    opacity: playingVideo === index ? 0 : (hoveredPlayButton === index ? 0.8 : (selectedVideo === index ? 1 : 0.8)),
+                    pointerEvents: playingVideo === index ? 'none' : 'auto'
                   }}
                   transition={{ duration: 0.4 }}
+                  style={{
+                    '@media (max-width: 768px)': {
+                      y: 0,
+                      opacity: 1
+                    }
+                  }}
                 >
                   <VideoTitle>{video.title}</VideoTitle>
-                  <VideoDesc>
-                    {video.description}
-                    <br />
-                    <strong style={{ color: '#ff1493' }}>
-                      {video.type}
-                    </strong>
-                  </VideoDesc>
-                  <VideoLink 
-                    href={video.link} 
+                  <VideoDesc>{video.description}</VideoDesc>
+                  <GlassButton
+                    as="a"
+                    href={video.link}
                     target="_blank"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+                    style={{ display: 'inline-flex', textDecoration: 'none' }}
                   >
-                    {playingVideo === index ? 'Open Full Screen →' : 'Watch Now →'}
-                  </VideoLink>
+                    Watch Full Video →
+                  </GlassButton>
                 </VideoInfo>
               </VideoShowcase>
             ))}
@@ -868,14 +769,14 @@ const Video = memo(() => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <SpecsTitle>PRODUCTION ARSENAL</SpecsTitle>
+          <SpecsTitle>TECHNICAL ARSENAL</SpecsTitle>
           <SpecsGrid>
             <SpecCategory>
-              <SpecLabel>Software Mastery</SpecLabel>
+              <SpecLabel>Software Proficiency</SpecLabel>
               <SpecList>{expertise.software}</SpecList>
             </SpecCategory>
             <SpecCategory>
-              <SpecLabel>Technical Skills</SpecLabel>
+              <SpecLabel>Advanced Techniques</SpecLabel>
               <SpecList>{expertise.techniques}</SpecList>
             </SpecCategory>
             <SpecCategory>
@@ -883,7 +784,7 @@ const Video = memo(() => {
               <SpecList>{expertise.specialties}</SpecList>
             </SpecCategory>
             <SpecCategory>
-              <SpecLabel>Technical Workflows</SpecLabel>
+              <SpecLabel>Equipment & Workflow</SpecLabel>
               <SpecList>{expertise.equipment}</SpecList>
             </SpecCategory>
           </SpecsGrid>
@@ -892,7 +793,5 @@ const Video = memo(() => {
     </CinemaContainer>
   );
 });
-
-Video.displayName = 'Video';
 
 export default Video;

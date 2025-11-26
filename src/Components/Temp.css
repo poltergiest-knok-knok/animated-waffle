@@ -13,9 +13,10 @@
 
 .slides {
   display: flex;
-  transition: transform 500ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 500ms cubic-bezier(.2, .9, .2, 1);
   will-change: transform;
 }
+
 /* Temp slider styles */
 .temp-slider {
   width: 100%;
@@ -34,7 +35,7 @@
 
 .slides {
   display: flex;
-  transition: transform 420ms cubic-bezier(.2,.9,.2,1);
+  transition: transform 420ms cubic-bezier(.2, .9, .2, 1);
   will-change: transform;
 }
 
@@ -61,8 +62,9 @@
   max-width: 100%;
   height: auto;
   object-fit: cover;
-  border-radius: 10px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .slide-copy {
@@ -73,9 +75,9 @@
 
 .slide-text {
   font-size: 1.05rem;
-  color: #fff;
-  line-height: 1.45;
-  opacity: 0.98;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .letter {
@@ -91,27 +93,36 @@
 }
 
 .control {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 10px 16px;
+  border-radius: 20px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.control:hover { transform: translateY(-2px); }
+.control:hover {
+  transform: translateY(-2px);
+}
 
-.indicators { display: flex; gap: 8px; }
+.indicators {
+  display: flex;
+  gap: 8px;
+}
 
 .dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   border: none;
 }
 
-.dot.active { background: #fff; }
+.dot.active {
+  background: #fff;
+}
 
 /* Popup on scroll-in */
 .temp-popup {
@@ -119,6 +130,7 @@
   transform: translateY(24px) scale(0.98);
   transition: opacity 300ms ease, transform 300ms ease;
 }
+
 .temp-popup.in-view {
   opacity: 1;
   transform: translateY(0) scale(1);
@@ -126,41 +138,97 @@
 
 /* Text reveal animation for active slide */
 .temp-popup.in-view .slide.active .slide-text {
-  animation: tempFadeInUp 700ms cubic-bezier(.2,.9,.2,1) both;
+  animation: tempFadeInUp 700ms cubic-bezier(.2, .9, .2, 1) both;
 }
 
 @keyframes tempFadeInUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ===== Responsive adjustments ===== */
 @media (max-width: 900px) {
-  .slide { padding: 28px 8px; gap: 12px; }
-  .slide-media { flex-basis: 55%; }
-  .slide-copy { flex-basis: 45%; padding-left: 8px; }
-  .slide-text { font-size: 1rem; }
+  .slide {
+    padding: 28px 8px;
+    gap: 12px;
+  }
+
+  .slide-media {
+    flex-basis: 55%;
+  }
+
+  .slide-copy {
+    flex-basis: 45%;
+    padding-left: 8px;
+  }
+
+  .slide-text {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 640px) {
-  .slide { flex-direction: column; align-items: stretch; padding: 18px 8px; }
-  .slide-media { width: 100%; flex-basis: auto; }
-  .slide-copy { width: 100%; flex-basis: auto; padding-left: 0; margin-top: 12px; }
-  .slide img { border-radius: 8px; }
-  .slide-text { font-size: 0.98rem; }
+  .slide {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px 8px;
+  }
+
+  .slide-media {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .slide-copy {
+    width: 100%;
+    flex-basis: auto;
+    padding-left: 0;
+    margin-top: 12px;
+  }
+
+  .slide img {
+    border-radius: 8px;
+  }
+
+  .slide-text {
+    font-size: 0.98rem;
+  }
 
   /* Make controls more usable on mobile */
-  .controls { gap: 10px; margin-top: 10px; }
-  .control { padding: 10px 14px; }
-  .dot { width: 12px; height: 12px; }
+  .controls {
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .control {
+    padding: 10px 14px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+  }
 
   /* Position controls overlay so they remain visible */
-  .controls { position: relative; }
+  .controls {
+    position: relative;
+  }
 }
 
 /* Small visual tweak for very small devices */
 @media (max-width: 420px) {
-  .slide-text { font-size: 0.9rem; }
-  .temp-slider { padding: 0 8px; }
-}
+  .slide-text {
+    font-size: 0.9rem;
+  }
 
+  .temp-slider {
+    padding: 0 8px;
+  }
+}

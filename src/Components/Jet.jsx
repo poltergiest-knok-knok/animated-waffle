@@ -1,20 +1,19 @@
 // src/components/Jet.jsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import Web from "./Web/Web";
-import Video from "./Video/Video";
+import GlassButton from "./Shared/GlassButton";
 
 /* ---------------- Styled Components ---------------- */
 
 const JetRoot = styled.div`
   width: 100%;
   min-height: 100vh;
-  background-color: #121212;
+  background-color: #000;
   color: white;
   cursor: none;
   overflow: hidden;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 `;
 
 const MainContainer = styled.div`
@@ -26,41 +25,31 @@ const MainContainer = styled.div`
 const TypingText = styled.h1`
   position: absolute;
   top: 40vh;
-  width: 100%;
-  text-align: center;
-  font-size: 3rem;
-  color: white;
+  left: 50%;
+  transform: translateX(-50%);
+  /* width is auto to fit content */
+  
+  font-size: 4rem;
+  font-weight: 700;
+  color: #fff;
   opacity: 1;
   transition: opacity 0.15s linear;
-  font-family: "Bitcount Prop Double Ink", system-ui;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  
+  /* Removed box styling and animation */
+  
+  @media (max-width: 768px) {
+    font-size: 2.5rem;
+  }
 `;
 
-const MoreInfoButton = styled.button`
+const ButtonContainer = styled.div`
   position: absolute;
   top: 60vh;
   left: 50%;
   transform: translateX(-50%);
-  padding: 14px 30px;
-  font-family: "Press Start 2P", monospace;
-  background: #111;
-  color: #0ff;
-  border: 3px solid #0ff;
-  text-transform: uppercase;
-  cursor: pointer;
   z-index: 10;
-
-  &:hover {
-    background: #222;
-    color: #ff00ff;
-    border-color: #ff00ff;
-  }
-
-  &:active {
-    transform: translateX(-50%) scale(0.98);
-    background: #000;
-    border-color: #ffff00;
-    color: #ffff00;
-  }
 `;
 
 const CircleCursor = styled.div`
@@ -72,7 +61,8 @@ const CircleCursor = styled.div`
   pointer-events: none;
   transform: translate(-50%, -50%);
   z-index: 9999;
-  transition: background-color 0.3s linear;
+  transition: background-color 0.3s linear, opacity 0.2s ease;
+  opacity: ${props => props.$hidden ? 0 : 1};
 `;
 
 const StyledCanvas = styled.canvas`
@@ -91,13 +81,14 @@ export default function Jet() {
   const dots = useRef([]);
   const frameRef = useRef(null);
   const navigate = useNavigate();
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
 
   /* ---------------- Typing Effect ---------------- */
   useEffect(() => {
     const element = textRef.current;
     if (!element) return;
 
-    const text = "Hello I am Abhi";
+    const text = "vynce.visuals";
     const typeSpeed = 120;
     const fadeSpeed = 40;
     const delayAfterComplete = 800;
@@ -190,6 +181,8 @@ export default function Jet() {
             x, y,
             ox: x, oy: y,
             vx: 0, vy: 0,
+            phase: Math.random() * Math.PI * 2,
+            twinkleSpeed: 0.005 + Math.random() * 0.01
           });
         }
       }
@@ -227,10 +220,14 @@ export default function Jet() {
         d.x += d.vx;
         d.y += d.vy;
 
+        // Twinkle effect
+        d.phase += d.twinkleSpeed;
+        const opacity = 0.1 + (Math.sin(d.phase) + 1) * 0.25; // Oscillate between 0.1 and 0.6
+
         // draw dot
-        ctx.fillStyle = "rgba(0,255,255,0.25)";
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
         ctx.beginPath();
-        ctx.arc(d.x, d.y, 2.3, 0, Math.PI * 2);
+        ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -240,7 +237,7 @@ export default function Jet() {
           const dx = allDots[i].x - allDots[j].x;
           const dy = allDots[i].y - allDots[j].y;
           if (dx * dx + dy * dy < connectDistance * connectDistance) {
-            ctx.strokeStyle = "rgba(255,255,255,0.07)";
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
             ctx.lineWidth = 0.5;
             ctx.beginPath();
             ctx.moveTo(allDots[i].x, allDots[i].y);
@@ -268,10 +265,16 @@ export default function Jet() {
       <MainContainer>
         <StyledCanvas ref={canvasRef} />
         <TypingText ref={textRef} />
-        <MoreInfoButton onClick={() => navigate("/dark")}>
-          f#ck me more.
-        </MoreInfoButton>
-        <CircleCursor ref={cursorRef} />
+        <ButtonContainer>
+          <GlassButton
+            onClick={() => navigate("/dark")}
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+          >
+            f#ck me more.
+          </GlassButton>
+        </ButtonContainer>
+        <CircleCursor ref={cursorRef} $hidden={isButtonHovered} />
       </MainContainer>
     </JetRoot>
   );
