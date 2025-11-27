@@ -45,6 +45,11 @@ const pulseRing = keyframes`
   }
 `;
 
+const rotate = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
 // =================================================
 //                 STYLED COMPONENTS
 // =================================================
@@ -190,26 +195,24 @@ const VideoShowcase = styled(motion.div)`
   position: relative;
   width: 100%;
   aspect-ratio: ${props => props.format === 'short' ? '9/16' : '16/9'};
-  /* Removed perspective to prevent 3D blur */
   cursor: pointer;
   border-radius: 30px;
   overflow: hidden;
   will-change: transform;
   
-  /* Prism Glass Card */
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  /* Base Card Style - Clean & Premium */
+  background: rgba(20, 20, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
   transition: all 0.4s ease;
+  z-index: 1;
   
   &:hover {
-    border-color: rgba(${props => props.glowColor || '255, 20, 147'}, 0.6);
+    transform: translateY(-10px);
+    border-color: rgba(255, 255, 255, 0.3);
     box-shadow: 
-      0 20px 40px rgba(0,0,0,0.4),
-      0 0 30px rgba(${props => props.glowColor || '255, 20, 147'}, 0.4),
-      0 0 60px rgba(${props => props.glowColor || '255, 20, 147'}, 0.2);
-    transform: translateY(-10px); /* Clean 2D lift */
+      0 20px 50px rgba(0,0,0,0.5),
+      0 0 30px rgba(255, 255, 255, 0.05);
   }
 `;
 
@@ -623,8 +626,7 @@ const Video = memo(() => {
   const [activeCategory, setActiveCategory] = useState('short');
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [playingVideo, setPlayingVideo] = useState(null);
-  const [hoveredPlayButton, setHoveredPlayButton] = useState(null); // Track play button hover
-  const [glowColor, setGlowColor] = useState("255, 20, 147"); // Default Deep Pink
+  const [hoveredPlayButton, setHoveredPlayButton] = useState(null);
   const navigate = useNavigate();
 
   const handlePlayVideo = useCallback((index) => {
@@ -698,13 +700,8 @@ const Video = memo(() => {
                 format={activeCategory}
                 variants={videoVariants}
                 whileHover={playingVideo === index ? {} : "hover"}
-                onHoverStart={() => {
-                  setSelectedVideo(index);
-                  const randomColor = neonColors[Math.floor(Math.random() * neonColors.length)];
-                  setGlowColor(randomColor);
-                }}
+                onHoverStart={() => setSelectedVideo(index)}
                 onHoverEnd={() => setSelectedVideo(null)}
-                glowColor={glowColor}
               >
                 <VideoThumbnail thumbnail={video.thumbnail}>
                   {playingVideo === index ? (

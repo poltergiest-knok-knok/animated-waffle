@@ -212,32 +212,25 @@ const HeroContent = styled.div`
   text-align: center;
   max-width: 800px;
   padding: 50px;
+  position: relative;
+  overflow: hidden;
   
-  /* Prism Glass Hero - Transparent & Clean */
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.02) 0%,
-    rgba(255, 255, 255, 0.005) 100%
-  );
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  /* Base Glass Style */
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 40px;
   
   box-shadow: 
     0 20px 50px rgba(0, 0, 0, 0.4),
-    inset 0 0 30px rgba(255, 255, 255, 0.01);
+    inset 0 0 30px rgba(255, 255, 255, 0.02);
     
   transition: all 0.4s ease;
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.1);
-    border-top-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 
-      0 25px 60px rgba(0, 0, 0, 0.5),
-      0 0 30px rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
   }
 
@@ -272,6 +265,19 @@ const HeroContent = styled.div`
   }
 `;
 
+const LiquidLayer = styled.div`
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  filter: url(#liquid-filter);
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+`;
+
 const NavigationButtons = styled.div`
   display: flex;
   gap: 30px;
@@ -298,7 +304,6 @@ const ActionButtons = styled.div`
     align-items: center;
   }
 `;
-
 /* ========================================================= */
 /*                         COMPONENT                         */
 /* ========================================================= */
@@ -313,6 +318,9 @@ export default function Dark() {
   const navRef = useRef(null);
   const tempRef = useRef(null);
   const [tempVisible, setTempVisible] = useState(false);
+
+  /* ------------ Liquid Animation Ref ------------ */
+  const turbulenceRef = useRef(null);
 
   /* ------------ Mobile Breakpoint Listener ------------ */
   useEffect(() => {
@@ -428,9 +436,49 @@ export default function Dark() {
     }
   }, [menuOpen, isMobile]);
 
+  /* ------------ Liquid Animation Loop ------------ */
+  useEffect(() => {
+    let frame;
+    let time = 0;
+
+    const animateLiquid = () => {
+      if (turbulenceRef.current) {
+        time += 0.002;
+        const val = 0.01 + Math.sin(time) * 0.005;
+        turbulenceRef.current.setAttribute("baseFrequency", `${val} ${val + 0.01}`);
+      }
+      frame = requestAnimationFrame(animateLiquid);
+    };
+
+    animateLiquid();
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   return (
     <DarkContainer>
       <BackgroundVideo src={video} autoPlay loop muted playsInline />
+
+      {/* ------------ LIQUID SVG FILTER ------------ */}
+      <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+        <defs>
+          <filter id="liquid-filter">
+            <feTurbulence
+              ref={turbulenceRef}
+              type="fractalNoise"
+              baseFrequency="0.01 0.02"
+              numOctaves="3"
+              result="noise"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="noise"
+              scale="20"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
+          </filter>
+        </defs>
+      </svg>
 
       {/* ------------ NAVBAR ------------ */}
       <Navbar ref={navRef} className={menuOpen ? "open" : ""}>
@@ -479,29 +527,32 @@ export default function Dark() {
 
       {/* ------------ HERO ------------ */}
       <HeroContent>
-        <h1>The best platform to get your designed sites</h1>
+        <LiquidLayer />
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <h1>The best platform to get your designed sites</h1>
 
-        <div className="subtitle">
-          The most powerful person is here to help you !
-        </div>
+          <div className="subtitle">
+            The most powerful person is here to help you !
+          </div>
 
-        {/* ------------ NAVIGATION BUTTONS ------------ */}
-        <NavigationButtons>
-          <GlassButton onClick={() => navigate("/web")}>
-            Web Portfolio
-          </GlassButton>
-          <GlassButton onClick={() => navigate("/video")}>
-            Video Portfolio
-          </GlassButton>
-        </NavigationButtons>
+          {/* ------------ NAVIGATION BUTTONS ------------ */}
+          <NavigationButtons>
+            <GlassButton onClick={() => navigate("/web")}>
+              Web Portfolio
+            </GlassButton>
+            <GlassButton onClick={() => navigate("/video")}>
+              Video Portfolio
+            </GlassButton>
+          </NavigationButtons>
 
-        <ActionButtons>
-          <GlassButton onClick={() => navigate("/")}>Get started now</GlassButton>
-          <GlassButton>Book a demo</GlassButton>
-        </ActionButtons>
+          <ActionButtons>
+            <GlassButton onClick={() => navigate("/")}>Get started now</GlassButton>
+            <GlassButton>Book a demo</GlassButton>
+          </ActionButtons>
 
-        <div style={{ marginTop: "24px", width: "100%" }}>
-          <Temp visible={tempVisible} rootRef={tempRef} />
+          <div style={{ marginTop: "24px", width: "100%" }}>
+            <Temp visible={tempVisible} rootRef={tempRef} />
+          </div>
         </div>
       </HeroContent>
     </DarkContainer>

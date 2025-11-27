@@ -1,6 +1,6 @@
 // src/components/Jet.jsx
 import React, { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import GlassButton from "./Shared/GlassButton";
 
@@ -13,13 +13,24 @@ const JetRoot = styled.div`
   color: white;
   cursor: none;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 `;
 
 const MainContainer = styled.div`
   position: relative;
   width: 100%;
   height: 100vh;
+`;
+
+const gradientAnimation = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const fadeInUp = keyframes`
+  0% { opacity: 0; transform: translate(-50%, 30px); filter: blur(12px); }
+  100% { opacity: 1; transform: translate(-50%, 0); filter: none; }
 `;
 
 const TypingText = styled.h1`
@@ -29,18 +40,35 @@ const TypingText = styled.h1`
   transform: translateX(-50%);
   /* width is auto to fit content */
   
-  font-size: 4rem;
-  font-weight: 700;
-  color: #fff;
-  opacity: 1;
-  transition: opacity 0.15s linear;
-  letter-spacing: 2px;
+  font-size: 5rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  will-change: transform, opacity, filter;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Liquid Glass Fluid Gradient */
+  background: linear-gradient(
+    -45deg,
+    #23d5ab, /* Teal */
+    #23a6d5, /* Blue */
+    #e73c7e, /* Pink */
+    #ee7752  /* Orange */
+  );
+  background-size: 400% 400%;
+  color: #fff; /* Fallback */
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* Combined Animations: Entrance + Fluid Flow */
+  animation: ${fadeInUp} 1.2s ease-out forwards, ${gradientAnimation} 10s ease infinite;
+
+  opacity: 0; /* Start invisible for fadeIn */
   white-space: nowrap;
   
-  /* Removed box styling and animation */
-  
   @media (max-width: 768px) {
-    font-size: 2.5rem;
+    font-size: 3rem;
   }
 `;
 
@@ -76,55 +104,14 @@ const StyledCanvas = styled.canvas`
 
 export default function Jet() {
   const canvasRef = useRef(null);
-  const textRef = useRef(null);
+  // textRef removed
   const cursorRef = useRef(null);
   const dots = useRef([]);
   const frameRef = useRef(null);
   const navigate = useNavigate();
   const [isButtonHovered, setIsButtonHovered] = useState(false);
 
-  /* ---------------- Typing Effect ---------------- */
-  useEffect(() => {
-    const element = textRef.current;
-    if (!element) return;
 
-    const text = "vynce.visuals";
-    const typeSpeed = 120;
-    const fadeSpeed = 40;
-    const delayAfterComplete = 800;
-
-    let index = 0;
-    let fading = false;
-
-    function typeLoop() {
-      if (!element) return;
-
-      if (!fading) {
-        element.textContent = text.slice(0, index);
-        index++;
-
-        if (index > text.length) {
-          fading = true;
-          setTimeout(typeLoop, delayAfterComplete);
-          return;
-        }
-      } else {
-        let opacity = parseFloat(element.style.opacity || "1");
-        opacity -= 0.05;
-        element.style.opacity = opacity;
-
-        if (opacity <= 0) {
-          fading = false;
-          index = 0;
-          element.style.opacity = 1;
-        }
-      }
-
-      setTimeout(typeLoop, fading ? fadeSpeed : typeSpeed);
-    }
-
-    typeLoop();
-  }, []);
 
   /* ---------------- Custom Cursor ---------------- */
   useEffect(() => {
@@ -192,8 +179,8 @@ export default function Jet() {
       ctx.clearRect(0, 0, width, height);
 
       const cursor = cursorRef.current;
-      const mx = cursor ? parseFloat(cursor.style.left) : -100;
-      const my = cursor ? parseFloat(cursor.style.top) : -100;
+      const mx = (cursor && cursor.style.left) ? parseFloat(cursor.style.left) : -100;
+      const my = (cursor && cursor.style.top) ? parseFloat(cursor.style.top) : -100;
 
       const allDots = dots.current;
 
@@ -264,7 +251,7 @@ export default function Jet() {
     <JetRoot>
       <MainContainer>
         <StyledCanvas ref={canvasRef} />
-        <TypingText ref={textRef} />
+        <TypingText>vyncevisual</TypingText>
         <ButtonContainer>
           <GlassButton
             onClick={() => navigate("/dark")}
