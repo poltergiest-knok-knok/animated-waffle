@@ -70,6 +70,12 @@ const TypingText = styled.h1`
   @media (max-width: 768px) {
     font-size: 3rem;
   }
+
+  @media (max-width: 480px) {
+    font-size: 2rem;
+    width: 90%;
+    text-align: center;
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -78,6 +84,13 @@ const ButtonContainer = styled.div`
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+
+  @media (max-width: 480px) {
+    top: 55vh;
+  }
 `;
 
 const CircleCursor = styled.div`
@@ -91,6 +104,10 @@ const CircleCursor = styled.div`
   z-index: 9999;
   transition: background-color 0.3s linear, opacity 0.2s ease;
   opacity: ${props => props.$hidden ? 0 : 1};
+
+  @media (hover: none) {
+    display: none;
+  }
 `;
 
 const StyledCanvas = styled.canvas`
@@ -113,30 +130,55 @@ export default function Jet() {
 
 
 
-  /* ---------------- Custom Cursor ---------------- */
+  /* ---------------- Custom Cursor & Interaction State ---------------- */
+  const mouseRef = useRef({ x: -1000, y: -1000 });
+
   useEffect(() => {
     const cursor = cursorRef.current;
-    if (!cursor) return;
 
+    // Color cycle for the cursor
     const colors = ["#ff4d4d", "#4dff4d", "#4d4dff", "#ffff4d", "#ff4dff"];
     let ci = 0;
-
     const colorCycle = setInterval(() => {
-      cursor.style.backgroundColor = colors[ci];
-      ci = (ci + 1) % colors.length;
+      if (cursor) {
+        cursor.style.backgroundColor = colors[ci];
+        ci = (ci + 1) % colors.length;
+      }
     }, 500);
 
-    function move(e) {
-      cursor.style.left = `${e.clientX}px`;
-      cursor.style.top = `${e.clientY}px`;
+    // Unified handler for mouse and touch
+    const updatePosition = (clientX, clientY) => {
+      mouseRef.current.x = clientX;
+      mouseRef.current.y = clientY;
+
+      if (cursor) {
+        cursor.style.left = `${clientX}px`;
+        cursor.style.top = `${clientY}px`;
+      }
+    };
+
+    function onMouseMove(e) {
+      updatePosition(e.clientX, e.clientY);
     }
 
-    window.addEventListener("mousemove", move);
+    function onTouchMove(e) {
+      if (e.touches.length > 0) {
+        updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchstart", onTouchMove, { passive: true });
+
+    // Hide default cursor
     document.body.style.cursor = "none";
 
     return () => {
       clearInterval(colorCycle);
-      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchstart", onTouchMove);
       document.body.style.cursor = "auto";
     };
   }, []);
@@ -162,8 +204,24 @@ export default function Jet() {
 
     function initDots() {
       dots.current = [];
-      for (let x = spacing; x < width; x += spacing) {
-        for (let y = spacing; y < height; y += spacing) {
+
+      // Calculate number of columns and rows
+      const cols = Math.floor(width / spacing);
+      const rows = Math.floor(height / spacing);
+
+      // Calculate total dimensions of the grid
+      const gridWidth = (cols - 1) * spacing;
+      const gridHeight = (rows - 1) * spacing;
+
+      // Calculate starting offsets to center the grid
+      const startX = (width - gridWidth) / 2;
+      const startY = (height - gridHeight) / 2;
+
+      for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
+          const x = startX + i * spacing;
+          const y = startY + j * spacing;
+
           dots.current.push({
             x, y,
             ox: x, oy: y,
@@ -178,9 +236,9 @@ export default function Jet() {
     function animate() {
       ctx.clearRect(0, 0, width, height);
 
-      const cursor = cursorRef.current;
-      const mx = (cursor && cursor.style.left) ? parseFloat(cursor.style.left) : -100;
-      const my = (cursor && cursor.style.top) ? parseFloat(cursor.style.top) : -100;
+      // Use the ref for coordinates instead of DOM reading (much faster & works for touch)
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
 
       const allDots = dots.current;
 
@@ -191,25 +249,25 @@ export default function Jet() {
         const dist = Math.hypot(dx, dy);
 
         // repulsion
-        if (dist < repelDistance && dist > 1) {
+        if (dist < repelDistance) {
           const force = (repelDistance - dist) / repelDistance;
-          d.vx += (dx / dist) * force;
-          d.vy += (dy / dist) * force;
+          d.vx += (dx / dist) * force * 2; // Increased force slightly for better feel
+          d.vy += (dy / dist) * force * 2;
         }
 
         // pull back to original position
-        d.vx += (d.ox - d.x) * 0.015;
-        d.vy += (d.oy - d.y) * 0.015;
+        d.vx += (d.ox - d.x) * 0.05; // Stronger pull back
+        d.vy += (d.oy - d.y) * 0.05;
 
-        d.vx *= 0.92;
-        d.vy *= 0.92;
+        d.vx *= 0.9; // More friction
+        d.vy *= 0.9;
 
         d.x += d.vx;
         d.y += d.vy;
 
         // Twinkle effect
         d.phase += d.twinkleSpeed;
-        const opacity = 0.1 + (Math.sin(d.phase) + 1) * 0.25; // Oscillate between 0.1 and 0.6
+        const opacity = 0.1 + (Math.sin(d.phase) + 1) * 0.25;
 
         // draw dot
         ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;

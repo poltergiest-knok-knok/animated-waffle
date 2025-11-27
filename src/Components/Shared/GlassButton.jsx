@@ -102,6 +102,11 @@ const StyledButton = styled.button`
     background: rgba(255, 255, 255, 0.01);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   }
+
+  @media (max-width: 768px) {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+  }
 `;
 
 export default function GlassButton({ children, onClick, className, style, onMouseEnter, onMouseLeave, ...props }) {
