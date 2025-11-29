@@ -33,7 +33,7 @@ const GlowBorder = styled.div`
       from 0deg,
       transparent 0%, 
       transparent 50%, 
-      #fff 80%,
+      ${props => props.$variant === 'dark' ? '#000' : '#fff'} 80%,
       transparent 100%
     );
     filter: blur(10px);
@@ -47,22 +47,25 @@ const StyledButton = styled.button`
   padding: 16px 32px;
   font-family: inherit;
   
-  /* Prism Liquid Glass & Neon Glow (Default State) */
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  backdrop-filter: blur(2px); /* Minimal blur for clarity */
+  /* Prism Liquid Glass & Neon Glow */
+  background: ${props => props.$variant === 'dark'
+    ? 'linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.01) 100%)'
+    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)'};
+  
+  backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   
   /* Depth & Prism Borders */
-  border: 1px solid rgba(255, 255, 255, 0.1); 
-  border-top: 1px solid rgba(255, 255, 255, 0.3); /* Catch light on top */
-  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'}; 
+  border-top: 1px solid ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)'};
+  border-left: 1px solid ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)'};
   
   box-shadow: 
-    inset 0 0 30px rgba(255, 255, 255, 0.02), /* Subtle inner volume */
-    0 10px 20px rgba(0, 0, 0, 0.3); /* Deep drop shadow for lift */
+    inset 0 0 30px ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.02)'},
+    0 10px 20px rgba(0, 0, 0, 0.3);
 
   border-radius: 50px;
-  color: #fff;
+  color: ${props => props.$variant === 'dark' ? '#000' : '#fff'};
   
   font-size: 1rem;
   font-weight: 600;
@@ -70,23 +73,24 @@ const StyledButton = styled.button`
   z-index: 10;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   
-  /* Overflow hidden to clip the GlowBorder if it bleeds (though mask handles it) */
   overflow: hidden; 
 
   &:hover {
-    /* Brighter & Clearer on Hover */
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-    backdrop-filter: blur(0px); /* Crystal clear on hover */
+    background: ${props => props.$variant === 'dark'
+    ? 'linear-gradient(135deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.02) 100%)'
+    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'};
+    
+    backdrop-filter: blur(0px);
     -webkit-backdrop-filter: blur(0px);
     
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.3);
-    border-top-color: rgba(255, 255, 255, 0.6);
+    color: ${props => props.$variant === 'dark' ? '#000' : '#fff'};
+    border-color: ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)'};
+    border-top-color: ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)'};
     
     box-shadow: 
-      inset 0 0 40px rgba(255, 255, 255, 0.05),
-      0 15px 35px rgba(0, 0, 0, 0.4), /* Deeper shadow */
-      0 0 20px rgba(255, 255, 255, 0.1); /* Subtle outer glow */
+      inset 0 0 40px ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)'},
+      0 15px 35px rgba(0, 0, 0, 0.4),
+      0 0 20px ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'};
       
     transform: translateY(-2px) scale(1.01);
   }
@@ -99,7 +103,7 @@ const StyledButton = styled.button`
 
   &:active {
     transform: translateY(1px) scale(0.98);
-    background: rgba(255, 255, 255, 0.01);
+    background: ${props => props.$variant === 'dark' ? 'rgba(0, 0, 0, 0.01)' : 'rgba(255, 255, 255, 0.01)'};
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   }
 
@@ -109,7 +113,7 @@ const StyledButton = styled.button`
   }
 `;
 
-export default function GlassButton({ children, onClick, className, style, onMouseEnter, onMouseLeave, ...props }) {
+export default function GlassButton({ children, onClick, className, style, onMouseEnter, onMouseLeave, variant = 'light', ...props }) {
   const buttonRef = useRef(null);
   const lastAngle = useRef(0);
 
@@ -125,7 +129,6 @@ export default function GlassButton({ children, onClick, className, style, onMou
     let angle = Math.atan2(y, x) * (180 / Math.PI);
 
     // Adjust angle to be continuous with the last angle to avoid jumps
-    // This handles the wrap-around at -180/180 degrees
     const delta = angle - (lastAngle.current % 360);
 
     if (delta > 180) {
@@ -151,10 +154,11 @@ export default function GlassButton({ children, onClick, className, style, onMou
       onMouseLeave={onMouseLeave}
       className={className}
       style={style}
+      $variant={variant}
       {...props}
     >
       {children}
-      <GlowBorder />
+      <GlowBorder $variant={variant} />
     </StyledButton>
   );
 }

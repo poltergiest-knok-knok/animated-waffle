@@ -24,6 +24,11 @@ const float = keyframes`
   100% { transform: translateY(0px); }
 `;
 
+const textShimmer = keyframes`
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+`;
+
 /* ========================================================= */
 /*                🔥 STYLED COMPONENTS SETUP 🔥              */
 /* ========================================================= */
@@ -216,16 +221,16 @@ const HeroContent = styled.div`
   overflow: hidden;
   
   /* Base Glass Style */
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 40px;
   
   box-shadow: 
     0 20px 50px rgba(0, 0, 0, 0.4),
-    inset 0 0 30px rgba(255, 255, 255, 0.02);
+    inset 0 0 30px rgba(255, 255, 255, 0.05);
     
   transition: all 0.4s ease;
 
@@ -237,12 +242,26 @@ const HeroContent = styled.div`
   h1 {
     font-size: 3.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+    
+    /* Holographic Text Effect */
+    background: linear-gradient(
+      90deg,
+      #ffffff 0%,
+      #00ffff 20%,
+      #ff00ff 40%,
+      #00ffff 60%,
+      #ffffff 80%
+    );
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
+    
+    animation: ${textShimmer} 4s linear infinite;
+    
     margin-bottom: 20px;
     letter-spacing: -1px;
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
   }
 
   .subtitle {
