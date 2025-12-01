@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import GlassButton from "./Shared/GlassButton";
-import WaterEffect from "./WaterEffect";
+
 
 /* ---------------- Styled Components ---------------- */
 
@@ -274,7 +274,7 @@ export default function Jet() {
         </ButtonContainer>
 
         {/* WaterEffect at z-index 100 (overlay) */}
-        <WaterEffect />
+
       </MainContainer>
     </JetRoot>
   );
