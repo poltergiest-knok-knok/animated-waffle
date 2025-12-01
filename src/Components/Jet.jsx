@@ -3,15 +3,15 @@ import React, { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import GlassButton from "./Shared/GlassButton";
+import WaterEffect from "./WaterEffect";
 
 /* ---------------- Styled Components ---------------- */
 
 const JetRoot = styled.div`
   width: 100%;
   min-height: 100vh;
-  background-color: #fff;
-  color: #000;
-  cursor: none;
+  background-color: #000;
+  color: #fff;
   overflow: hidden;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 `;
@@ -27,58 +27,45 @@ const fadeInUp = keyframes`
   100% { opacity: 1; transform: translate(-50%, 0); filter: none; }
 `;
 
-const aestheticFlow = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+const lightSweep = keyframes`
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 `;
 
-const TextContainer = styled.div`
+const CinematicText = styled.h1`
   position: absolute;
   top: 40vh;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  gap: 2px;
   z-index: 5;
-  
-  /* Entrance Animation */
-  animation: ${fadeInUp} 1.2s ease-out forwards;
-  opacity: 0;
-`;
+  margin: 0;
+  white-space: nowrap;
 
-const Letter = styled.span`
-  font-size: 5rem;
-  font-weight: 500;
-  letter-spacing: -0.05em;
-  display: inline-block;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 4vw;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
   
-  /* Vibrant Aesthetic Gradient */
+  /* Smooth White Reveal Sweep */
   background: linear-gradient(
-    45deg,
-    #12c2e9 0%,  /* Vibrant Blue */
-    #c471ed 50%, /* Vibrant Purple */
-    #f64f59 100% /* Vibrant Red/Pink */
+    120deg, 
+    transparent 20%,
+    rgba(255, 255, 255, 0.9) 50%,
+    transparent 80%
   );
-  background-size: 200% 200%;
   
-  color: transparent;
+  background-size: 200% 100%;
   background-clip: text;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: transparent;
   
-  /* Crisp, No Blur */
-  filter: none;
-  
-  /* Animation */
-  animation: ${aestheticFlow} 6s ease infinite;
-  
-  @media (max-width: 768px) {
-    font-size: 3rem;
-  }
+  /* Entrance Animation */
+  animation: ${fadeInUp} 1.2s ease-out forwards, ${lightSweep} 6s linear infinite;
+  opacity: 0;
 
-  @media (max-width: 480px) {
-    font-size: 2rem;
+  @media (max-width: 768px) {
+    font-size: 8vw;
   }
 `;
 
@@ -97,35 +84,18 @@ const ButtonContainer = styled.div`
   }
 `;
 
-const CircleCursor = styled.div`
-  position: fixed;
-  width: 22px;
-  height: 22px;
-  background-color: #00ffff;
-  border-radius: 50%;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  z-index: 9999;
-  transition: background-color 0.3s linear, opacity 0.2s ease;
-  opacity: ${props => props.$hidden ? 0 : 1};
-
-  @media (hover: none) {
-    display: none;
-  }
-`;
-
 const StyledCanvas = styled.canvas`
   position: absolute;
   top: 0;
   left: 0;
   z-index: 1;
+  pointer-events: none; /* Let clicks pass through to WaterEffect if needed, or handle interaction separately */
 `;
 
 /* ---------------- Component ---------------- */
 
 export default function Jet() {
   const canvasRef = useRef(null);
-  const cursorRef = useRef(null);
   const dots = useRef([]);
   const frameRef = useRef(null);
   const navigate = useNavigate();
@@ -135,27 +105,10 @@ export default function Jet() {
   const mouseRef = useRef({ x: -1000, y: -1000 });
 
   useEffect(() => {
-    const cursor = cursorRef.current;
-
-    // Color cycle for the cursor
-    const colors = ["#ff4d4d", "#4dff4d", "#4d4dff", "#ffff4d", "#ff4dff"];
-    let ci = 0;
-    const colorCycle = setInterval(() => {
-      if (cursor) {
-        cursor.style.backgroundColor = colors[ci];
-        ci = (ci + 1) % colors.length;
-      }
-    }, 500);
-
     // Unified handler for mouse and touch
     const updatePosition = (clientX, clientY) => {
       mouseRef.current.x = clientX;
       mouseRef.current.y = clientY;
-
-      if (cursor) {
-        cursor.style.left = `${clientX}px`;
-        cursor.style.top = `${clientY}px`;
-      }
     };
 
     function onMouseMove(e) {
@@ -172,15 +125,10 @@ export default function Jet() {
     window.addEventListener("touchmove", onTouchMove, { passive: true });
     window.addEventListener("touchstart", onTouchMove, { passive: true });
 
-    // Hide default cursor
-    document.body.style.cursor = "none";
-
     return () => {
-      clearInterval(colorCycle);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchstart", onTouchMove);
-      document.body.style.cursor = "auto";
     };
   }, []);
 
@@ -270,20 +218,20 @@ export default function Jet() {
         d.phase += d.twinkleSpeed;
         const opacity = 0.1 + (Math.sin(d.phase) + 1) * 0.25;
 
-        // draw dot
-        ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
+        // draw dot (WHITE for black background)
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
         ctx.beginPath();
         ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // connect dots
+      // connect dots (WHITE lines)
       for (let i = 0; i < allDots.length; i++) {
         for (let j = i + 1; j < allDots.length; j++) {
           const dx = allDots[i].x - allDots[j].x;
           const dy = allDots[i].y - allDots[j].y;
           if (dx * dx + dy * dy < connectDistance * connectDistance) {
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
             ctx.lineWidth = 0.5;
             ctx.beginPath();
             ctx.moveTo(allDots[i].x, allDots[i].y);
@@ -309,17 +257,14 @@ export default function Jet() {
   return (
     <JetRoot>
       <MainContainer>
+        {/* StyledCanvas at z-index 1 */}
         <StyledCanvas ref={canvasRef} />
-        <TextContainer>
-          {"Vynce Visual".split("").map((char, i) => (
-            <Letter key={i}>
-              {char}
-            </Letter>
-          ))}
-        </TextContainer>
+
+        <CinematicText>
+          VYNCEVISUAL
+        </CinematicText>
         <ButtonContainer>
           <GlassButton
-            variant="dark"
             onClick={() => navigate("/dark")}
             onMouseEnter={() => setIsButtonHovered(true)}
             onMouseLeave={() => setIsButtonHovered(false)}
@@ -327,7 +272,9 @@ export default function Jet() {
             f#ck me more.
           </GlassButton>
         </ButtonContainer>
-        <CircleCursor ref={cursorRef} $hidden={isButtonHovered} />
+
+        {/* WaterEffect at z-index 100 (overlay) */}
+        <WaterEffect />
       </MainContainer>
     </JetRoot>
   );
