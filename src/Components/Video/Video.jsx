@@ -487,6 +487,13 @@ const videoProjects = {
       glowColor: "rgba(255, 100, 255, 0.6)" // Purple/Pink
     },
     {
+      title: "Vintage Benz",
+      description: "Classic car restoration showcase.",
+      src: "/Videos/benz 300d graded F1 topaz enhanced.mp4",
+      thumbnail: "",
+      glowColor: "rgba(255, 215, 0, 0.6)" // Gold
+    },
+    {
       title: "Product Commercial",
       description: "Sleek 3D motion graphics and product showcase.",
       src: "/Videos/x part 3 credit card.mp4",
@@ -548,13 +555,6 @@ const videoProjects = {
       src: "/Videos/camera follow.mp4",
       thumbnail: "",
       glowColor: "rgba(255, 255, 255, 0.6)" // White
-    },
-    {
-      title: "Vintage Benz",
-      description: "Classic car restoration showcase.",
-      src: "/Videos/benz 300d graded F1 topaz enhanced.mp4",
-      thumbnail: "",
-      glowColor: "rgba(255, 215, 0, 0.6)" // Gold
     }
   ],
   long: []
