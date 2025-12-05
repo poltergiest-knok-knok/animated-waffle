@@ -562,6 +562,9 @@ export default function Dark() {
             <GlassButton onClick={() => navigate("/video")}>
               Video Portfolio
             </GlassButton>
+            <GlassButton onClick={() => navigate("/thumbnail")}>
+              Thumbnail Gallery
+            </GlassButton>
           </NavigationButtons>
 
           <ActionButtons>
