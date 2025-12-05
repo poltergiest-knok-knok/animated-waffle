@@ -59,10 +59,10 @@ const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted,
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   const width = isMobile ? '100%' : '400px';
-  const maxWidth = isMobile ? '90vw' : '400px';
+  const maxWidth = isMobile ? '100%' : '400px';
   const aspectRatio = '9/16';
-  const borderRadius = isMobile ? '0px' : '30px'; // No border radius on mobile for full immersion
-  const actualWidth = isMobile ? '100vw' : width; // Force full width on mobile
+  const borderRadius = isMobile ? '24px' : '30px'; // Rounded corners on mobile for aesthetic card look
+  const actualWidth = width; // Use container width (with padding) instead of full viewport
 
   // Play/Pause Logic
   React.useEffect(() => {
@@ -541,7 +541,7 @@ const videoProjects = {
     {
       title: "Automotive B-Roll",
       description: "Dynamic automotive cinematography.",
-      src: "/Videos/blue bemz N5.mp4",
+      src: "/Videos/blue_benz.mp4",
       thumbnail: "",
       glowColor: "rgba(0, 100, 255, 0.6)" // Deep Blue
     },
@@ -641,10 +641,9 @@ const ReelBottomInfo = styled(motion.div)`
   padding-bottom: calc(30px + env(safe-area-inset-bottom)); /* Safe area padding */
   background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
   z-index: 25;
+  z-index: 25;
   text-align: left;
   pointer-events: none;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
 
   h3 {
     font-family: 'Inter', sans-serif;
