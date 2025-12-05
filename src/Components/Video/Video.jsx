@@ -7,7 +7,8 @@ import GlassButton from "../Shared/GlassButton"; // Import shared GlassButton
 
 
 const CinemaContainer = styled(motion.div)`
-  height: 100vh;
+  height: 100vh; /* Fallback */
+  height: 100dvh;
   background: #050505;
   color: white;
   font-family: 'Inter', sans-serif;
@@ -16,6 +17,12 @@ const CinemaContainer = styled(motion.div)`
   position: relative;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
+  
+  /* Hide scrollbar for cleaner mobile look */
+  &::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
   
   &::before {
     content: '';
@@ -41,11 +48,21 @@ const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted,
 
   const isShort = format === 'short';
 
-  const isMobile = window.innerWidth < 768; // Simple check for implementation
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const width = isMobile ? '100%' : '400px';
   const maxWidth = isMobile ? '90vw' : '400px';
   const aspectRatio = '9/16';
-  const borderRadius = isMobile ? '20px' : '30px';
+  const borderRadius = isMobile ? '0px' : '30px'; // No border radius on mobile for full immersion
+  const actualWidth = isMobile ? '100vw' : width; // Force full width on mobile
 
   // Play/Pause Logic
   React.useEffect(() => {
@@ -98,8 +115,8 @@ const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted,
     >
       <motion.div
         style={{
-          width,
-          maxWidth,
+          width: actualWidth,
+          maxWidth: isMobile ? '100vw' : maxWidth,
           aspectRatio,
           transformStyle: 'preserve-3d',
           position: 'relative'
@@ -564,16 +581,16 @@ const videoProjects = {
 const ReelSidebar = styled(motion.div)`
   position: absolute;
   right: 15px;
-  bottom: 80px;
+  bottom: 120px; /* Moved up to clear text */
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
   z-index: 30;
 
   @media (max-width: 768px) {
     right: 10px;
-    bottom: 70px;
-    gap: 12px;
+    bottom: calc(100px + env(safe-area-inset-bottom));
+    gap: 15px;
   }
 `;
 
@@ -602,6 +619,12 @@ const ReelActionButton = styled(motion.button)`
     border-color: rgba(255, 255, 255, 0.5);
   }
 
+  @media (max-width: 768px) {
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+  }
+
   span {
     font-size: 0.7rem;
     margin-top: 5px;
@@ -615,10 +638,13 @@ const ReelBottomInfo = styled(motion.div)`
   left: 0;
   width: 100%;
   padding: 30px 20px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  padding-bottom: calc(30px + env(safe-area-inset-bottom)); /* Safe area padding */
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
   z-index: 25;
-  text-align: left; /* Align left for Reels style */
+  text-align: left;
   pointer-events: none;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 
   h3 {
     font-family: 'Inter', sans-serif;
@@ -636,12 +662,25 @@ const ReelBottomInfo = styled(motion.div)`
     font-size: 0.95rem;
     color: rgba(255, 255, 255, 0.9);
     line-height: 1.4;
-    max-width: 80%;
-    margin-bottom: 15px;
+    max-width: 75%; /* Limit width to avoid hitting buttons if they overlap */
+    margin-bottom: 5px;
     text-shadow: 0 1px 4px rgba(0,0,0,0.5);
     font-family: 'Inter', sans-serif;
     text-transform: none;
     letter-spacing: normal;
+    
+    /* Ensure only 2 lines max */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 20px 15px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    h3 { font-size: 1.2rem; }
+    p { font-size: 0.85rem; max-width: 80%; }
   }
 `;
 
@@ -669,14 +708,17 @@ const FixedTopBar = styled(motion.div)`
   align-items: center;
   justify-content: space-between;
   padding: 20px 30px;
+  padding-top: calc(20px + env(safe-area-inset-top)); /* Safe area top padding */
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
   
   @media (max-width: 768px) {
-    padding: 15px 20px;
+    padding: 10px 15px;
+    padding-top: calc(10px + env(safe-area-inset-top));
     background: rgba(0, 0, 0, 0.5);
+    gap: 10px;
   }
 `;
 
