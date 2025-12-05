@@ -1,80 +1,27 @@
 import React, { useState, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import { useNavigate } from "react-router-dom";
-import GlassButton from "../Shared/GlassButton";
 
-// ============== KEYFRAME EFFECTS =================
+import GlassButton from "../Shared/GlassButton"; // Import shared GlassButton
 
-const cinemaFlicker = keyframes`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.95; }
-`;
-
-const neonGlow = keyframes`
-  0%, 100% { 
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.4);
-  }
-  50% { 
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.6);
-  }
-`;
-
-const filmGrain = keyframes`
-  0%, 100% { background-position: 0% 0%; }
-  50% { background-position: 5% 5%; }
-`;
-
-const textReveal = keyframes`
-  0% { 
-    background-position: -100% center;
-  }
-  100% { 
-    background-position: 100% center;
-  }
-`;
-
-const pulseRing = keyframes`
-  0% {
-    transform: scale(0.33);
-    opacity: 1;
-  }
-  80%, 100% {
-    transform: scale(2.33);
-    opacity: 0;
-  }
-`;
-
-const rotate = keyframes`
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-`;
-
-// =================================================
-//                 STYLED COMPONENTS
-// =================================================
 
 const CinemaContainer = styled(motion.div)`
-  min-height: 100vh;
-  background: #000;
+  height: 100vh;
+  background: #050505;
   color: white;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  position: relative;
+  font-family: 'Inter', sans-serif;
+  overflow-y: scroll;
   overflow-x: hidden;
+  position: relative;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
   
-  /* Abstract Background Blobs */
   &::before {
     content: '';
     position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: 
-      radial-gradient(circle at 30% 30%, rgba(255, 20, 147, 0.15), transparent 50%),
-      radial-gradient(circle at 70% 70%, rgba(0, 191, 255, 0.15), transparent 50%),
-      radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.15), transparent 50%);
-    filter: blur(60px);
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(20, 20, 40, 1), #000 80%);
     z-index: 0;
     pointer-events: none;
   }
@@ -83,709 +30,810 @@ const CinemaContainer = styled(motion.div)`
 const Container = styled.div`
   position: relative;
   z-index: 2;
-  padding: 60px 40px;
-  max-width: 1400px;
+  padding: 60px 20px;
+  max-width: 1600px;
   margin: 0 auto;
-  
-  @media (max-width: 768px) {
-    padding: 40px 20px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 30px 15px;
-  }
+`;
+
+const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted, toggleMute }) => {
+  const videoRef = React.useRef(null);
+  const [isLiked, setIsLiked] = useState(false); // Local liked state for visible feedback
+
+  const isShort = format === 'short';
+
+  const isMobile = window.innerWidth < 768; // Simple check for implementation
+  const width = isMobile ? '100%' : '400px';
+  const maxWidth = isMobile ? '90vw' : '400px';
+  const aspectRatio = '9/16';
+  const borderRadius = isMobile ? '20px' : '30px';
+
+  // Play/Pause Logic
+  React.useEffect(() => {
+    if (videoRef.current) {
+      if (isActive) {
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log("Auto-play prevented:", error);
+          });
+        }
+      } else {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0; // Reset to start
+        // Mute state is now controlled by parent, do not reset it here
+      }
+    }
+  }, [isActive]);
+
+  const handleLike = (e) => {
+    e.stopPropagation();
+    setIsLiked(!isLiked);
+  };
+
+  const togglePlay = (e) => {
+    // Basic tap to play/pause
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  };
+
+  return (
+    <motion.div
+      style={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        perspective: '1000px',
+        marginBottom: '40px', // Reduced margin for smoother snap feel
+        paddingTop: '20px',
+        scrollSnapAlign: 'center'
+      }}
+      // Use margin to trigger earlier/later without requiring 60% visibility
+      viewport={{ amount: 0.5, margin: "-10% 0px -10% 0px" }}
+      onViewportEnter={() => onInView(index)}
+    >
+      <motion.div
+        style={{
+          width,
+          maxWidth,
+          aspectRatio,
+          transformStyle: 'preserve-3d',
+          position: 'relative'
+        }}
+        animate={{
+          scale: isActive ? 1 : 0.85, // More dramatic scale difference for "pop"
+          opacity: isActive ? 1 : 0.5,
+          y: isActive ? 0 : 50, // Slight vertical movement
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+          mass: 1
+        }}
+      >
+        <VideoCard
+          $isActive={isActive}
+          $glowColor={video.glowColor}
+          style={{ borderRadius, width: '100%', height: '100%' }}
+        >
+          {isActive && (
+            <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 30 }}>
+              <RecIndicator>REC</RecIndicator>
+            </div>
+          )}
+
+          <div
+            onClick={togglePlay} // Tap to toggle play/pause
+            style={{ width: '100%', height: '100%', background: '#000', position: 'relative', cursor: 'pointer' }}
+          >
+            <video
+              ref={videoRef}
+              src={video.src}
+              muted={isMuted}
+              loop
+              playsInline
+              preload="auto"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius
+              }}
+            />
+
+            {/* Reel UI Overlays - Only visible when Active */}
+            <AnimatePresence>
+              {isActive && (
+                <>
+                  {/* Right Sidebar Actions */}
+                  <ReelSidebar
+                    initial={{ x: 50, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <ReelActionButton onClick={handleLike} whileTap={{ scale: 0.9 }}>
+                      {isLiked ? '❤️' : '🤍'}
+                    </ReelActionButton>
+
+                    <ReelActionButton onClick={(e) => { e.stopPropagation(); toggleMute(); }} whileTap={{ scale: 0.9 }}>
+                      {isMuted ? '🔇' : '🔊'}
+                    </ReelActionButton>
+
+                    <ReelActionButton whileTap={{ scale: 0.9 }}>
+                      🔗
+                    </ReelActionButton>
+
+                    <ReelActionButton style={{ borderRadius: '15px' }} whileTap={{ scale: 0.9 }}>
+                      <div style={{ width: '24px', height: '24px', background: 'white', borderRadius: '50%' }} />
+                    </ReelActionButton>
+                  </ReelSidebar>
+
+                  {/* Bottom Info Gradient */}
+                  <ReelBottomInfo
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                      <TagPill>#{video.title.split(' ')[0]}</TagPill>
+                      <TagPill>#Portfolio</TagPill>
+                    </div>
+                    <h3>{video.title}</h3>
+                    <p>{video.description}</p>
+                  </ReelBottomInfo>
+                </>
+              )}
+            </AnimatePresence>
+
+            {/* Play Overlay - Fades out when active */}
+            <AnimatePresence>
+              {!isActive && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <Thumbnail>
+                    <PlayOverlay>
+                      <div className="icon">▶</div>
+                    </PlayOverlay>
+                  </Thumbnail>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </VideoCard>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Cinematic Assets
+const GrainOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.05;
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/Noise_overlay.png");
+  mix-blend-mode: overlay;
+`;
+
+const Vignette = styled.div`
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%);
+  pointer-events: none;
+  z-index: 2;
+`;
+
+const bounce = keyframes`
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
 `;
 
 const CinemaHeader = styled(motion.div)`
   text-align: center;
-  margin-bottom: 80px;
+  margin-bottom: 20px;
   position: relative;
+  z-index: 10;
   
-  @media (max-width: 768px) {
-    margin-bottom: 60px;
-  }
-  
-  @media (max-width: 480px) {
-    margin-bottom: 40px;
-  }
+  /* Hero Section Styling: Full Height, Centered */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  scroll-snap-align: start; // Snap to the top securely
 `;
 
 const CinemaTitle = styled(motion.h1)`
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 800;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 8rem); // Slightly smaller min for mobile
+  font-weight: 300;
+  letter-spacing: clamp(0.2rem, 1vw, 1rem); // Adaptive spacing
+  color: #fff;
+  text-transform: uppercase;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, #fff 0%, #ccc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -2px;
+  text-shadow: 0 0 30px rgba(255,255,255,0.2);
   
-  @media (max-width: 480px) {
-    font-size: clamp(2rem, 8vw, 3rem);
-    margin-bottom: 15px;
+  span {
+    display: block;
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    letter-spacing: 0.5rem;
+    opacity: 0.5;
+    margin-top: 10px;
+    font-weight: 600;
   }
 `;
 
 const CinemaSubtitle = styled(motion.p)`
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 400;
+  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
   max-width: 600px;
   margin: 0 auto;
-  line-height: 1.6;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  display: inline-block;
+  padding-left: 10px; // Safety padding
+  padding-right: 10px;
+`;
+
+const ScrollPrompt = styled(motion.div)`
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
   
-  @media (max-width: 768px) {
-    font-size: 1rem;
+  p {
+    font-size: 0.75rem;
+    letter-spacing: 0.3rem;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin: 0;
   }
   
-  @media (max-width: 480px) {
-    font-size: 0.9rem;
-    padding: 0 20px;
+  .arrow {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.8);
+    animation: ${bounce} 2s infinite;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
   }
+`;
+
+const RecIndicator = styled(motion.div)`
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ff3b3b;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  z-index: 20;
+
+  &::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: #ff3b3b;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ff3b3b;
+  }
+`;
+
+const Timecode = styled.div`
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  font-family: 'Courier New', monospace;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  z-index: 20;
 `;
 
 const VideoCategories = styled(motion.div)`
   display: flex;
   justify-content: center;
-  gap: 40px;
+  gap: 20px;
   margin-bottom: 80px;
-  
-  @media (max-width: 768px) {
-    gap: 30px;
-    margin-bottom: 60px;
-  }
-  
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 40px;
-  }
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  padding: 10px;
+  border-radius: 50px;
+  background: rgba(0,0,0,0.5);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 `;
 
 const StyledCategoryButton = styled(GlassButton)`
-  background: ${props => props.active
-    ? 'rgba(255, 255, 255, 0.2)'
-    : 'rgba(255, 255, 255, 0.05)'};
-  border: 1px solid ${props => props.active
-    ? 'rgba(255, 255, 255, 0.4)'
-    : 'rgba(255, 255, 255, 0.1)'};
-`;
-
-const VideoGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: ${props => props.format === 'short'
-    ? 'repeat(auto-fit, minmax(300px, 1fr))'
-    : 'repeat(auto-fit, minmax(500px, 1fr))'};
-  gap: 40px;
-  margin-bottom: 100px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 30px;
-    margin-bottom: 80px;
-  }
-  
-  @media (max-width: 480px) {
-    gap: 25px;
-    margin-bottom: 60px;
-  }
-`;
-
-const VideoShowcase = styled(motion.div)`
-  position: relative;
-  width: 100%;
-  aspect-ratio: ${props => props.format === 'short' ? '9/16' : '16/9'};
-  cursor: pointer;
-  border-radius: 30px;
-  overflow: hidden;
-  will-change: transform;
-  
-  /* Base Card Style - Clean & Premium */
-  background: rgba(20, 20, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-  transition: all 0.4s ease;
-  z-index: 1;
+  background: ${props => props.active ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.05)'};
+  color: ${props => props.active ? '#000' : '#fff'};
+  border: none;
   
   &:hover {
-    transform: translateY(-10px);
-    border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 
-      0 20px 50px rgba(0,0,0,0.5),
-      0 0 30px rgba(255, 255, 255, 0.05);
+    background: ${props => props.active ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.15)'};
   }
 `;
 
-const VideoThumbnail = styled(motion.div)`
+const VideoStreamContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 30vh;
+  perspective: 2000px;
+`;
+
+const VideoCard = styled(motion.div)`
+  position: relative;
+  background: #000;
+  overflow: hidden;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.8);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: border-color 0.3s ease;
+  
+  will-change: transform, box-shadow; // Optimization hint
+  
+  ${props => props.$isActive && css`
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 0 40px ${props.$glowColor || 'rgba(255, 20, 147, 0.5)'};
+    animation: ${activeGlow} 4s infinite ease-in-out;
+    --glow-color: ${props.$glowColor || 'rgba(255, 20, 147, 0.5)'};
+  `}
+`;
+
+// Update keyframe to use CSS variable for dynamic color
+const activeGlow = keyframes`
+  0% { box-shadow: 0 0 20px var(--glow-color); }
+  50% { box-shadow: 0 0 50px var(--glow-color); }
+  100% { box-shadow: 0 0 20px var(--glow-color); }
+`;
+
+const Thumbnail = styled.div`
   width: 100%;
   height: 100%;
+  background-image: url(${props => props.bg});
+  background-size: cover;
+  background-position: center;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background-image: url(${props => props.thumbnail});
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.5s ease; /* Smooth zoom transition */
   
-  /* Zoom effect on hover */
-  ${VideoShowcase}:hover & {
-    transform: scale(1.05);
-  }
-  
-  iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: 20px;
-    position: relative;
-    z-index: 5;
-  }
-  
-  &::before {
+  &::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.6) 0%,
-      rgba(0, 0, 0, 0.3) 50%,
-      rgba(0, 0, 0, 0.6) 100%
-    );
-    z-index: 1;
-    transition: opacity 0.3s ease;
-  }
-  
-  &:hover::before {
-    opacity: 0.8;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
   }
 `;
 
-const PlayButton = styled(motion.div)`
+const PlayOverlay = styled(motion.div)`
   position: absolute;
-  top: 50%;
-  left: 50%;
-  /* transform is handled by framer-motion initial prop to avoid conflicts */
-  width: 120px;
-  height: 120px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   z-index: 2;
-  transition: opacity 0.3s ease;
   
-  &::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    animation: ${pulseRing} 2s infinite;
-  }
-  
-  &::after {
-    content: '▶';
-    font-size: 2.5rem;
-    color: #fff;
-    margin-left: 8px;
-  }
-  
-  @media (max-width: 768px) {
-    width: 100px;
-    height: 100px;
-    
-    &::after {
-      font-size: 2rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    width: 80px;
-    height: 80px;
-    
-    &::after {
-      font-size: 1.5rem;
-    }
+  .icon {
+    font-size: 4rem;
+    color: rgba(255,255,255,0.9);
+    filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
   }
 `;
 
-const VideoInfo = styled(motion.div)`
+const VideoMeta = styled(motion.div)`
   position: absolute;
   bottom: 0;
   left: 0;
-  right: 0;
-  padding: 30px;
-  z-index: 10;
+  width: 100%;
+  padding: 40px;
+  background: linear-gradient(to top, #000 0%, transparent 100%);
+  z-index: 5;
+  pointer-events: none;
+  text-align: center; // Center align like movie posters
   
-  /* Prism Glass Card inside */
-  background: rgba(10, 10, 10, 0.7); /* Slightly darker for better text contrast */
-  backdrop-filter: blur(15px); /* Reduced blur to help with text sharpness */
-  -webkit-backdrop-filter: blur(15px);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
-  transform: translateZ(0); /* Hardware acceleration for text sharpness */
-  backface-visibility: hidden;
-  -webkit-font-smoothing: antialiased;
-  
-  @media (max-width: 768px) {
-    padding: 25px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 20px;
-  }
-`;
-
-const VideoTitle = styled(motion.h3)`
-  font-size: 1.4rem;
-  color: #fff;
-  margin-bottom: 10px;
-  font-weight: 700;
-  
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-  }
-`;
-
-const VideoDesc = styled(motion.p)`
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 15px;
-  line-height: 1.6;
-  
-  @media (max-width: 768px) {
-    font-size: 0.8rem;
-  }
-`;
-
-const SpecsShowcase = styled(motion.div)`
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.05),
-    rgba(255, 255, 255, 0.02)
-  );
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 40px;
-  padding: 60px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-  transition: all 0.4s ease;
-  
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 
-      0 20px 40px rgba(0,0,0,0.3),
-      0 0 30px rgba(255, 255, 255, 0.05);
-  }
-  
-  @media (max-width: 768px) {
-    padding: 40px;
-    border-radius: 30px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 30px;
-    border-radius: 20px;
-  }
-`;
-
-const SpecsTitle = styled(motion.h2)`
-  font-size: 2.5rem;
-  color: #fff;
-  margin-bottom: 40px;
-  font-weight: 700;
-  
-  @media (max-width: 768px) {
+  h3 {
+    font-family: 'Inter', sans-serif;
     font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    color: #fff;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
   
-  @media (max-width: 480px) {
-    font-size: 1.5rem;
+  p {
+    font-family: 'Courier New', monospace; // Tech/Edit feel
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
-`;
 
-const SpecsGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
-  position: relative;
-  z-index: 2;
-  
   @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 25px;
-  }
-  
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    padding: 20px;
+    h3 { font-size: 1.2rem; letter-spacing: 2px; }
+    p { font-size: 0.7rem; }
   }
 `;
-
-const SpecCategory = styled(motion.div)`
-  text-align: left;
-`;
-
-const SpecLabel = styled.h4`
-  color: #fff;
-  font-size: 1.2rem;
-  margin-bottom: 15px;
-  font-weight: 600;
-  
-  @media (max-width: 768px) {
-    font-size: 1.1rem;
-  }
-`;
-
-const SpecList = styled.p`
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  line-height: 1.8;
-  
-  @media (max-width: 768px) {
-    font-size: 0.85rem;
-  }
-`;
-
-// =================================================
-//                 DATA
-// =================================================
 
 const videoProjects = {
   short: [
     {
-      title: "Cinematic Montage",
-      description: "High-energy promotional video featuring dynamic transitions, color grading, and synchronized audio for maximum impact.",
-      type: "Commercial",
-      link: "https://drive.google.com/file/d/1atG4tA2ToM3gQy62abHBn2xlKUxoIgUn/view?usp=drive_link",
-      embedId: "1atG4tA2ToM3gQy62abHBn2xlKUxoIgUn",
-      thumbnail: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      title: "Social Media Edit",
+      description: "High-energy fast cuts for maximum retention.",
+      src: "/Videos/Neha Datta Shorts 6.mp4",
+      thumbnail: "",
+      glowColor: "rgba(255, 100, 255, 0.6)" // Purple/Pink
     },
     {
-      title: "Brand Story",
-      description: "Compelling narrative-driven content with professional motion graphics and seamless visual storytelling.",
-      type: "Marketing",
-      link: "https://drive.google.com/file/d/1-NK0xtCaFurfKdVOx6jl7fhPKmWJX04Z/view?usp=drive_link",
-      embedId: "1-NK0xtCaFurfKdVOx6jl7fhPKmWJX04Z",
-      thumbnail: "https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      title: "Product Commercial",
+      description: "Sleek 3D motion graphics and product showcase.",
+      src: "/Videos/x part 3 credit card.mp4",
+      thumbnail: "",
+      glowColor: "rgba(0, 200, 255, 0.6)" // Cyan
     },
     {
-      title: "Social Media Promo",
-      description: "Fast-paced social media content optimized for engagement with trendy cuts and vibrant color schemes.",
-      type: "Social Media",
-      link: "https://drive.google.com/file/d/1-2n8UcqRxt75bIausHPoPwHSfjJPaBwl/view?usp=drive_link",
-      embedId: "1-2n8UcqRxt75bIausHPoPwHSfjJPaBwl",
-      thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      title: "Visual Effects",
+      description: "Abstract 3D simulation and rendering.",
+      src: "/Videos/cube animation.mp4",
+      thumbnail: "",
+      glowColor: "rgba(100, 255, 100, 0.6)" // Green
     },
     {
-      title: "Product Showcase",
-      description: "Sleek product demonstration featuring smooth transitions, close-up details, and professional lighting effects.",
-      type: "Product Demo",
-      link: "https://drive.google.com/file/d/1ZcPSuMzJEOcmhPKSMF5gFp9u5YZvwYRN/view?usp=drive_link",
-      embedId: "1ZcPSuMzJEOcmhPKSMF5gFp9u5YZvwYRN",
-      thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      title: "Creative Recreation",
+      description: "Stylized visual recreation and color grading.",
+      src: "/Videos/recreation N1.mp4",
+      thumbnail: "",
+      glowColor: "rgba(255, 50, 50, 0.6)" // Red
+    },
+    {
+      title: "Cinematic Food",
+      description: "High-end culinary cinematography.",
+      src: "/Videos/Chickpea salad bowl.mp4",
+      thumbnail: "",
+      glowColor: "rgba(255, 165, 0, 0.6)" // Orange
+    },
+    {
+      title: "Automotive B-Roll",
+      description: "Dynamic automotive cinematography.",
+      src: "/Videos/blue bemz N5.mp4",
+      thumbnail: "",
+      glowColor: "rgba(0, 100, 255, 0.6)" // Deep Blue
+    },
+    {
+      title: "Travel Vlog",
+      description: "Narrative storytelling and lifestyle.",
+      src: "/Videos/Dogesh.mp4",
+      thumbnail: "",
+      glowColor: "rgba(255, 255, 100, 0.6)" // Yellow
     },
     {
       title: "Event Highlights",
-      description: "Dynamic event recap with synchronized beats, crowd reactions, and atmospheric color grading for maximum energy.",
-      type: "Event",
-      link: "https://drive.google.com/file/d/1gULhVfXtzTwTEQDe9DjyzEkTmotJHfz5/view?usp=drive_link",
-      embedId: "1gULhVfXtzTwTEQDe9DjyzEkTmotJHfz5",
-      thumbnail: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      description: "Capturing the energy of live events.",
+      src: "/Videos/EVO final topaz.mp4",
+      thumbnail: "",
+      glowColor: "rgba(200, 0, 255, 0.6)" // Violet
     },
     {
-      title: "Creative Trailer",
-      description: "Cinematic trailer with dramatic pacing, epic sound design, and Hollywood-style visual effects and transitions.",
-      type: "Trailer",
-      link: "https://drive.google.com/file/d/1EduKn1LEe-fgyNOn-9_fSjE1fAU9AaU7/view?usp=drive_link",
-      embedId: "1EduKn1LEe-fgyNOn-9_fSjE1fAU9AaU7",
-      thumbnail: "https://images.unsplash.com/photo-1478720568477-152d9b164e63?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      title: "Corporate Brand",
+      description: "Professional brand identity work.",
+      src: "/Videos/Magnates ae.mp4",
+      thumbnail: "",
+      glowColor: "rgba(0, 255, 200, 0.6)" // Teal
     },
     {
-      title: "Fashion Reel",
-      description: "Stylish fashion video with rhythmic editing, trendy effects, and mood-driven color palettes for modern aesthetics.",
-      type: "Fashion",
-      link: "https://drive.google.com/file/d/17AE-hyDxoAYkogmuTm06SVDrm9lii6pD/view?usp=drive_link",
-      embedId: "17AE-hyDxoAYkogmuTm06SVDrm9lii6pD",
-      thumbnail: "https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      title: "Technical Tracking",
+      description: "Advanced camera tracking and stabilization.",
+      src: "/Videos/camera follow.mp4",
+      thumbnail: "",
+      glowColor: "rgba(255, 255, 255, 0.6)" // White
     },
     {
-      title: "Music Video",
-      description: "Beat-synchronized music video featuring creative visual effects, dynamic camera angles, and artistic storytelling.",
-      type: "Music Video",
-      link: "https://drive.google.com/file/d/1ENuSIjisGMLP_1hiOsDumeAR_hcROj8g/view?usp=drive_link",
-      embedId: "1ENuSIjisGMLP_1hiOsDumeAR_hcROj8g",
-      thumbnail: "https://images.unsplash.com/photo-1514525253440-b393452e8d26?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      title: "Tech Demo",
-      description: "Modern technology showcase with sleek animations, futuristic transitions, and clean minimalist design aesthetics.",
-      type: "Technology",
-      link: "https://drive.google.com/file/d/1niEhx022OR91BLSQfF4vuVfJkxVLLmTU/view?usp=drive_link",
-      embedId: "1niEhx022OR91BLSQfF4vuVfJkxVLLmTU",
-      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+      title: "Vintage Benz",
+      description: "Classic car restoration showcase.",
+      src: "/Videos/benz 300d graded F1 topaz enhanced.mp4",
+      thumbnail: "",
+      glowColor: "rgba(255, 215, 0, 0.6)" // Gold
     }
   ],
-  long: [
-    {
-      title: "Documentary Feature",
-      description: "Full-length documentary with advanced editing techniques, multicamera synchronization, and immersive sound design.",
-      type: "Documentary",
-      link: "https://drive.google.com/file/d/1e2vY0CLRAy4iquChpngQsakoR1xPZCM7/view?usp=drive_link",
-      embedId: "1e2vY0CLRAy4iquChpngQsakoR1xPZCM7",
-      thumbnail: "https://images.unsplash.com/photo-1533561797500-4fad4750814e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      title: "Creative Showcase",
-      description: "Artistic video production showcasing advanced visual effects, color theory application, and innovative editing workflows.",
-      type: "Artistic",
-      link: "https://drive.google.com/file/d/1l0UcpnQWaVJCkULNUSA8TBqeaVMhDSSV/view?usp=drive_link",
-      embedId: "1l0UcpnQWaVJCkULNUSA8TBqeaVMhDSSV",
-      thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-    }
-  ]
+  long: []
 };
 
-const expertise = {
-  software: "Adobe Premiere Pro, After Effects, DaVinci Resolve, Final Cut Pro, Avid Media Composer",
-  techniques: "Color Grading, Motion Graphics, Visual Effects, Audio Synchronization, Multicam Editing",
-  specialties: "Narrative Storytelling, Documentary Production, Commercial Content, Social Media Optimization",
-  equipment: "4K/8K Workflows, HDR Processing, Professional Audio Mixing, Advanced Codec Management"
-};
+// Reel / TikTok Style UI Components
+const ReelSidebar = styled(motion.div)`
+  position: absolute;
+  right: 15px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 30;
 
-const neonColors = [
-  "255, 20, 147", // Deep Pink
-  "0, 255, 255",  // Cyan
-  "255, 0, 255",  // Magenta
-  "57, 255, 20",  // Neon Green
-  "255, 255, 0",  // Yellow
-  "138, 43, 226", // Blue Violet
-  "255, 69, 0"    // Orange Red
-];
-
-// =================================================
-//               MOTION VARIANTS
-// =================================================
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15
-    }
+  @media (max-width: 768px) {
+    right: 10px;
+    bottom: 70px;
+    gap: 12px;
   }
-};
+`;
 
-const itemVariants = {
-  hidden: { y: 50, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 12
-    }
+const ReelActionButton = styled(motion.button)`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.5);
   }
-};
 
-const videoVariants = {
-  hidden: { rotateY: -15, opacity: 0, scale: 0.8 },
-  visible: {
-    rotateY: 0,
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
+  span {
+    font-size: 0.7rem;
+    margin-top: 5px;
+    font-weight: 600;
   }
-  // Removed hover 3D scaling to fix blurriness
-};
+`;
 
-// =================================================
-//                   COMPONENT
-// =================================================
+const ReelBottomInfo = styled(motion.div)`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 30px 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  z-index: 25;
+  text-align: left; /* Align left for Reels style */
+  pointer-events: none;
+
+  h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+    max-width: 80%;
+    margin-bottom: 15px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+`;
+
+const TagPill = styled.span`
+  display: inline-block;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  margin-right: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+
+
+// Header Components
+const FixedTopBar = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  
+  @media (max-width: 768px) {
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.5);
+  }
+`;
+
+const NavLeft = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+`;
+
+const NavCenter = styled.div`
+  flex: 2;
+  display: flex;
+  justify-content: center;
+`;
+
+const CategorySwitcher = styled.div`
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 5px;
+  border-radius: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 5px;
+`;
+
+const SwitcherButton = styled.button`
+  background: ${props => props.active ? 'rgba(255, 255, 255, 1)' : 'transparent'};
+  color: ${props => props.active ? '#000' : 'rgba(255, 255, 255, 0.7)'};
+  border: none;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: ${props => props.active ? '0 4px 15px rgba(0,0,0,0.2)' : 'none'};
+
+  &:hover {
+    color: ${props => props.active ? '#000' : '#fff'};
+    background: ${props => props.active ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.05)'};
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+`;
 
 const Video = memo(() => {
-  const [activeCategory, setActiveCategory] = useState('short');
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const [playingVideo, setPlayingVideo] = useState(null);
-  const [hoveredPlayButton, setHoveredPlayButton] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("short");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isGlobalMuted, setIsGlobalMuted] = useState(true); // Global mute state
   const navigate = useNavigate();
 
-  const handlePlayVideo = useCallback((index) => {
-    setPlayingVideo(prev => prev === index ? null : index);
-  }, []);
-
-  const handleCategoryChange = useCallback((category) => {
+  const handleCategoryChange = (category) => {
     setActiveCategory(category);
-    setPlayingVideo(null);
-  }, []);
+    setActiveIndex(0);
+    // When changing category, scroll back to the hero section (top)
+    document.querySelector('.sc-fszimp')?.scrollTo({ top: 0, behavior: 'smooth' }); // Use class based generic selector if ref not available, or just window
+    // Actually, since we are inside a custom scroll container, we need to scroll THAT container.
+    // Ideally we should use a Ref for CinemaContainer.
+  };
 
   const currentVideos = useMemo(() => videoProjects[activeCategory], [activeCategory]);
 
   return (
     <CinemaContainer
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6 }}
     >
-      <div style={{ position: 'fixed', top: '30px', left: '30px', zIndex: 1000 }}>
-        <GlassButton onClick={() => navigate('/dark')}>
-          ← Back
-        </GlassButton>
-      </div>
+      <GrainOverlay />
+      <Vignette />
+
+      <FixedTopBar
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <NavLeft>
+          <GlassButton
+            onClick={() => navigate('/dark')}
+            style={{ padding: '10px 20px', fontSize: '0.9rem' }}
+          >
+            ← Back
+          </GlassButton>
+        </NavLeft>
+
+        <NavCenter>
+          <CategorySwitcher>
+            <SwitcherButton
+              active={activeCategory === 'short'}
+              onClick={() => handleCategoryChange('short')}
+            >
+              Shorts
+            </SwitcherButton>
+            <SwitcherButton
+              active={activeCategory === 'long'}
+              onClick={() => handleCategoryChange('long')}
+            >
+              Cinematic
+            </SwitcherButton>
+          </CategorySwitcher>
+        </NavCenter>
+
+        <div style={{ flex: 1 }}>{/* Spacer for right side balance */}</div>
+      </FixedTopBar>
 
       <Container>
-        <CinemaHeader variants={itemVariants}>
+        <CinemaHeader style={{ marginTop: '0px' }}>
           <CinemaTitle
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            CINEMA ARCHITECT
-          </CinemaTitle>
-          <CinemaSubtitle
-            initial={{ y: 30, opacity: 0 }}
+            initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            transition={{ duration: 1 }}
           >
-            Crafting visual stories that captivate and inspire
+            Showcase<span>Portfolio</span>
+          </CinemaTitle>
+          <CinemaSubtitle>
+            A curated collection of visual storytelling.
           </CinemaSubtitle>
+
+          <ScrollPrompt
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 1 }}
+          >
+            <p>Scroll to explore</p>
+            <div className="arrow">↓</div>
+          </ScrollPrompt>
         </CinemaHeader>
 
-        <VideoCategories variants={itemVariants}>
-          <StyledCategoryButton
-            active={activeCategory === 'short'}
-            onClick={() => handleCategoryChange('short')}
-          >
-            Short Form
-          </StyledCategoryButton>
-          <StyledCategoryButton
-            active={activeCategory === 'long'}
-            onClick={() => handleCategoryChange('long')}
-          >
-            Long Form
-          </StyledCategoryButton>
-        </VideoCategories>
-
-        <AnimatePresence mode="wait">
-          <VideoGrid
-            key={activeCategory}
-            format={activeCategory}
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit={{ opacity: 0, y: -50 }}
-          >
-            {currentVideos.map((video, index) => (
-              <VideoShowcase
-                key={`${activeCategory}-${index}`}
-                format={activeCategory}
-                variants={videoVariants}
-                whileHover={playingVideo === index ? {} : "hover"}
-                onHoverStart={() => setSelectedVideo(index)}
-                onHoverEnd={() => setSelectedVideo(null)}
-              >
-                <VideoThumbnail thumbnail={video.thumbnail}>
-                  {playingVideo === index ? (
-                    <iframe
-                      src={`https://drive.google.com/file/d/${video.embedId}/preview`}
-                      allow="autoplay"
-                      allowFullScreen
-                      title={video.title}
-                      style={{ pointerEvents: 'auto' }}
-                    />
-                  ) : (
-                    <PlayButton
-                      initial={{ x: "-50%", y: "-50%" }}
-                      style={{
-                        opacity: selectedVideo === index ? 1 : 0.7
-                      }}
-                      whileHover={{ scale: 1.1, opacity: 1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onHoverStart={() => setHoveredPlayButton(index)}
-                      onHoverEnd={() => setHoveredPlayButton(null)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlayVideo(index);
-                      }}
-                    />
-                  )}
-                </VideoThumbnail>
-                <VideoInfo
-                  initial={{ y: 100, opacity: 0 }}
-                  animate={{
-                    y: playingVideo === index ? 100 : (hoveredPlayButton === index ? 50 : (selectedVideo === index ? 0 : 50)),
-                    opacity: playingVideo === index ? 0 : (hoveredPlayButton === index ? 0.8 : (selectedVideo === index ? 1 : 0.8)),
-                    pointerEvents: playingVideo === index ? 'none' : 'auto'
-                  }}
-                  transition={{ duration: 0.4 }}
-                  style={{
-                    '@media (max-width: 768px)': {
-                      y: 0,
-                      opacity: 1
-                    }
-                  }}
-                >
-                  <VideoTitle>{video.title}</VideoTitle>
-                  <VideoDesc>{video.description}</VideoDesc>
-                  <GlassButton
-                    as="a"
-                    href={video.link}
-                    target="_blank"
-                    style={{ display: 'inline-flex', textDecoration: 'none' }}
-                  >
-                    Watch Full Video →
-                  </GlassButton>
-                </VideoInfo>
-              </VideoShowcase>
-            ))}
-          </VideoGrid>
-        </AnimatePresence>
-
-        <SpecsShowcase
-          variants={itemVariants}
-          whileInView={{ scale: [0.95, 1.02, 1] }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <SpecsTitle>TECHNICAL ARSENAL</SpecsTitle>
-          <SpecsGrid>
-            <SpecCategory>
-              <SpecLabel>Software Proficiency</SpecLabel>
-              <SpecList>{expertise.software}</SpecList>
-            </SpecCategory>
-            <SpecCategory>
-              <SpecLabel>Advanced Techniques</SpecLabel>
-              <SpecList>{expertise.techniques}</SpecList>
-            </SpecCategory>
-            <SpecCategory>
-              <SpecLabel>Creative Specialties</SpecLabel>
-              <SpecList>{expertise.specialties}</SpecList>
-            </SpecCategory>
-            <SpecCategory>
-              <SpecLabel>Equipment & Workflow</SpecLabel>
-              <SpecList>{expertise.equipment}</SpecList>
-            </SpecCategory>
-          </SpecsGrid>
-        </SpecsShowcase>
+        <VideoStreamContainer>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ width: '100%' }}
+            >
+              {currentVideos.map((video, index) => (
+                <CinematicVideoItem
+                  key={`${activeCategory}-${index}`}
+                  video={video}
+                  index={index}
+                  format={activeCategory}
+                  isActive={activeIndex === index}
+                  isMuted={isGlobalMuted}
+                  toggleMute={() => setIsGlobalMuted(prev => !prev)}
+                  onInView={setActiveIndex}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </VideoStreamContainer>
       </Container>
     </CinemaContainer>
   );
