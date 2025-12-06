@@ -777,6 +777,12 @@ const NavCenter = styled.div`
   justify-content: center;
 `;
 
+const NavRight = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+`;
+
 const CategorySwitcher = styled.div`
   display: flex;
   background: rgba(255, 255, 255, 0.1);
@@ -911,7 +917,14 @@ const Video = memo(() => {
           </CategorySwitcher>
         </NavCenter>
 
-        <div style={{ flex: 1 }}>{/* Spacer for right side balance */}</div>
+        <NavRight>
+          <GlassButton
+            onClick={() => navigate('/contact')}
+            style={{ padding: '10px 20px', fontSize: '0.9rem' }}
+          >
+            Contact
+          </GlassButton>
+        </NavRight>
       </FixedTopBar>
 
       {/* New Hero Section */}

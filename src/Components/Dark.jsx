@@ -2,9 +2,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
-import Temp from "./Temp.jsx";
+import { Canvas } from "@react-three/fiber";
+import { MeshDistortMaterial, Sphere, TorusKnot, Icosahedron, Tetrahedron, Float, Stars, MeshWobbleMaterial } from "@react-three/drei";
 
-import video from "../assets/pixelbg.mp4";
+
+
 import GlassButton from "./Shared/GlassButton";
 
 /* ========================================================= */
@@ -28,6 +30,8 @@ const textShimmer = keyframes`
   0% { background-position: 0% 50%; }
   100% { background-position: 200% 50%; }
 `;
+
+
 
 /* ========================================================= */
 /*                🔥 STYLED COMPONENTS SETUP 🔥              */
@@ -65,14 +69,90 @@ const DarkContainer = styled.div`
   }
 `;
 
-const BackgroundVideo = styled.video`
+/* ========================================================= */
+/*                   3D BACKGROUND COMPONENTS                */
+/* ========================================================= */
+
+const CanvasContainer = styled.div`
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   z-index: -1;
+  background: black;
 `;
+
+const LiquidBackground = () => {
+  return (
+    <CanvasContainer>
+      <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+        <color attach="background" args={["#000000"]} />
+        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+
+        {/* Colorful Lights for Iridescence */}
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={2} color="#00ffff" />
+        <pointLight position={[-10, -10, -5]} intensity={5} color="#ff00ff" />
+        <pointLight position={[0, 5, 0]} intensity={2} color="#ffffff" />
+
+        {/* Main Abstract Shape - Twisted Liquid Knot */}
+        <Float speed={2} rotationIntensity={1.5} floatIntensity={2}>
+          <TorusKnot args={[1, 0.3, 128, 16]} position={[0, 0, 0]}>
+            <MeshDistortMaterial
+              color="#000"
+              envMapIntensity={1}
+              clearcoat={1}
+              clearcoatRoughness={0}
+              metalness={0.9}
+              roughness={0.1}
+              distort={0.4}
+              speed={2}
+            />
+          </TorusKnot>
+        </Float>
+
+        {/* Secondary Abstract Shape - Flowing Liquid */}
+        <Float speed={2.5} rotationIntensity={2} floatIntensity={3}>
+          <TorusKnot args={[0.6, 0.2, 100, 16]} position={[-3, 2, -2]}>
+            <MeshDistortMaterial
+              color="#111"
+              envMapIntensity={1}
+              clearcoat={1}
+              clearcoatRoughness={0}
+              metalness={0.95}
+              roughness={0.1}
+              distort={0.5}
+              speed={3}
+            />
+          </TorusKnot>
+        </Float>
+
+        {/* Tertiary Abstract Shape - Distorted Glass */}
+        <Float speed={3} rotationIntensity={1.5} floatIntensity={2.5}>
+          <TorusKnot args={[0.5, 0.15, 100, 16]} position={[3, -2, -1]}>
+            <MeshDistortMaterial
+              color="#050505"
+              envMapIntensity={1}
+              clearcoat={1}
+              clearcoatRoughness={0}
+              metalness={1}
+              roughness={0}
+              distort={0.6}
+              speed={2.5}
+            />
+          </TorusKnot>
+        </Float>
+
+
+
+
+
+
+
+
+
+      </Canvas>
+    </CanvasContainer>
+  );
+};
 
 const Navbar = styled.nav`
   width: 100%;
@@ -323,6 +403,7 @@ const ActionButtons = styled.div`
     align-items: center;
   }
 `;
+
 /* ========================================================= */
 /*                         COMPONENT                         */
 /* ========================================================= */
@@ -335,8 +416,6 @@ export default function Dark() {
   const navigate = useNavigate();
 
   const navRef = useRef(null);
-  const tempRef = useRef(null);
-  const [tempVisible, setTempVisible] = useState(false);
 
   /* ------------ Liquid Animation Ref ------------ */
   const turbulenceRef = useRef(null);
@@ -348,33 +427,6 @@ export default function Dark() {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-
-  /* ------------ Temp Intersection Observer ------------ */
-  useEffect(() => {
-    const el = tempRef.current;
-    if (!el) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        setTempVisible(entry.isIntersecting && entry.intersectionRatio > 0.2);
-      },
-      { threshold: [0, 0.2, 0.5] }
-    );
-
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  /* ------------ Animate letters trigger ------------ */
-  useEffect(() => {
-    if (!tempVisible) return;
-    const el = tempRef.current;
-
-    el.classList.add("animate-letters");
-
-    const t = setTimeout(() => el.classList.remove("animate-letters"), 2000);
-    return () => clearTimeout(t);
-  }, [tempVisible]);
 
   /* ------------ Close menu on outside click ------------ */
   useEffect(() => {
@@ -475,7 +527,7 @@ export default function Dark() {
 
   return (
     <DarkContainer>
-      <BackgroundVideo src={video} autoPlay loop muted playsInline />
+      <LiquidBackground />
 
       {/* ------------ LIQUID SVG FILTER ------------ */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -501,46 +553,37 @@ export default function Dark() {
 
       {/* ------------ NAVBAR ------------ */}
       <Navbar ref={navRef} className={menuOpen ? "open" : ""}>
-        {/* Left: Webdev Portfolio */}
-        <NavLink to="/web" className="main-link">Webdev Portfolio</NavLink>
+        {isMobile ? (
+          <>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <NavLink to="/" style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#fff' }}>
+                VynceVisuals
+              </NavLink>
+              <MenuToggle onClick={() => setMenuOpen(!menuOpen)}>
+                <div className="dot" />
+                <div className="dot" />
+                <div className="dot" />
+              </MenuToggle>
+            </div>
 
-        {/* Center: Other Links (hidden on mobile) */}
-        {!isMobile && (
-          <NavLinks className="nav-links">
-            <NavLink href="#">
-              <NavIcon viewBox="0 0 24 24">
-                <path d="M12 1.5l2.35 7.24h7.65l-6.18 4.48 2.36 7.24-6.18-4.48-6.18 4.48 2.36-7.24-6.18-4.48h7.65z" />
-              </NavIcon>
-              Asterisk
-            </NavLink>
-            <NavLink href="#">Eooks</NavLink>
-            <NavLink href="#">
-              <OpalIcon />
-              Opal
-            </NavLink>
-            <NavLink href="#">
-              <NavIcon viewBox="0 0 24 24">
-                <path d="M21.9,8.3C21.7,7.8,21.4,7.4,21,7
-                    c-2.4-2.4-6.4-2.4-8.8,0c-1,1-1.6,2.4-1.6,3.8c0,0.5,0.1,1,0.2,1.5 
-                    c-0.5,0-1,0.1-1.5,0.2c-2.4,0.4-4.2,2.5-4.2,5c0,2.8,2.2,5,5,5 
-                    c0.2,0,0.5,0,0.7-0.1c0.5,0.6,1.2,1,2,1.2c2.8,0.7,5.6-0.3,7.2-2.5 
-                    C22.3,15.8,22.1,12.3,19.9,9.9C19.7,9.5,19.4,9,19.4,9z" />
-              </NavIcon>
-              Dune
-            </NavLink>
-            <NavLink href="#">Oasis</NavLink>
-          </NavLinks>
-        )}
-
-        {/* Right: Video Portfolio */}
-        <NavLink to="/vyncevisuals" className="main-link">Video Portfolio</NavLink>
-
-        {/* Mobile: Only show Webdev/Video links centered */}
-        {isMobile && (
-          <NavLinks className="nav-links">
-            <NavLink to="/web" className="main-link">Webdev Portfolio</NavLink>
-            <NavLink to="/vyncevisuals" className="main-link">Video Portfolio</NavLink>
-          </NavLinks>
+            <NavLinks className="nav-links">
+              <NavLink to="/" onClick={() => setMenuOpen(false)}>Home</NavLink>
+              <NavLink to="/web" onClick={() => setMenuOpen(false)}>Webdev Portfolio</NavLink>
+              <NavLink to="/vyncevisuals" onClick={() => setMenuOpen(false)}>Video Portfolio</NavLink>
+              <NavLink to="/thumbnail" onClick={() => setMenuOpen(false)}>Thumbnails</NavLink>
+              <NavLink to="/contact" onClick={() => setMenuOpen(false)}>Contact</NavLink>
+            </NavLinks>
+          </>
+        ) : (
+          <>
+            <NavLinks className="nav-links">
+              <NavLink to="/">Home</NavLink>
+              <NavLink to="/web">Webdev Portfolio</NavLink>
+              <NavLink to="/vyncevisuals">Video Portfolio</NavLink>
+              <NavLink to="/thumbnail">Thumbnails</NavLink>
+              <NavLink to="/contact">Contact</NavLink>
+            </NavLinks>
+          </>
         )}
       </Navbar>
 
@@ -571,12 +614,9 @@ export default function Dark() {
             <GlassButton onClick={() => navigate("/")}>Get started now</GlassButton>
             <GlassButton>Book a demo</GlassButton>
           </ActionButtons>
-
-          <div style={{ marginTop: "24px", width: "100%" }}>
-            <Temp visible={tempVisible} rootRef={tempRef} />
-          </div>
         </div>
       </HeroContent>
     </DarkContainer>
   );
 }
+
