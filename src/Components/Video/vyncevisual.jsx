@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
-import GlassButton from "./Shared/GlassButton";
+import GlassButton from "../Shared/GlassButton";
 
 
 /* ---------------- Styled Components ---------------- */
@@ -94,7 +94,7 @@ const StyledCanvas = styled.canvas`
 
 /* ---------------- Component ---------------- */
 
-export default function Jet() {
+export default function VynceVisual({ onButtonClick }) {
   const canvasRef = useRef(null);
   const dots = useRef([]);
   const frameRef = useRef(null);
@@ -255,21 +255,21 @@ export default function Jet() {
   }, []);
 
   return (
-    <JetRoot>
+    <JetRoot style={{ scrollSnapAlign: 'start' }}>
       <MainContainer>
         {/* StyledCanvas at z-index 1 */}
         <StyledCanvas ref={canvasRef} />
 
         <CinematicText>
-          unmutexe
+          VYNCEVISUALS
         </CinematicText>
         <ButtonContainer>
           <GlassButton
-            onClick={() => navigate("/dark")}
+            onClick={onButtonClick}
             onMouseEnter={() => setIsButtonHovered(true)}
             onMouseLeave={() => setIsButtonHovered(false)}
           >
-            f#ck me more.
+            Know More.
           </GlassButton>
         </ButtonContainer>
 

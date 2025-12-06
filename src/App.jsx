@@ -7,6 +7,7 @@ import Dark from './Components/Dark.jsx';
 import Web from './Components/Web/Web.jsx';
 import Video from './Components/Video/Video.jsx';
 import Thumbnail from './Components/Thumbnail/Thumbnail.jsx';
+import Contact from './Components/Contact.jsx';
 
 export default function App() {
   return (
@@ -25,10 +26,13 @@ export default function App() {
           <Route path="/web" element={<Web />} />
 
           {/* Route for the '/video' path, rendering the Video component */}
-          <Route path="/video" element={<Video />} />
+          <Route path="/vyncevisuals" element={<Video />} />
 
           {/* Route for the '/thumbnail' path, rendering the Thumbnail component */}
           <Route path="/thumbnail" element={<Thumbnail />} />
+
+          {/* Route for the '/contact' path, rendering the Contact component */}
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </div>
     </Router>

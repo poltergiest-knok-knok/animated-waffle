@@ -533,13 +533,13 @@ export default function Dark() {
         )}
 
         {/* Right: Video Portfolio */}
-        <NavLink to="/video" className="main-link">Video Portfolio</NavLink>
+        <NavLink to="/vyncevisuals" className="main-link">Video Portfolio</NavLink>
 
         {/* Mobile: Only show Webdev/Video links centered */}
         {isMobile && (
           <NavLinks className="nav-links">
             <NavLink to="/web" className="main-link">Webdev Portfolio</NavLink>
-            <NavLink to="/video" className="main-link">Video Portfolio</NavLink>
+            <NavLink to="/vyncevisuals" className="main-link">Video Portfolio</NavLink>
           </NavLinks>
         )}
       </Navbar>
@@ -559,7 +559,7 @@ export default function Dark() {
             <GlassButton onClick={() => navigate("/web")}>
               Web Portfolio
             </GlassButton>
-            <GlassButton onClick={() => navigate("/video")}>
+            <GlassButton onClick={() => navigate("/vyncevisuals")}>
               Video Portfolio
             </GlassButton>
             <GlassButton onClick={() => navigate("/thumbnail")}>

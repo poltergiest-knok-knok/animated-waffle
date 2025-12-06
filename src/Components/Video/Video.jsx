@@ -4,6 +4,8 @@ import styled, { keyframes, css } from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 import GlassButton from "../Shared/GlassButton"; // Import shared GlassButton
+import VynceVisual from "./vyncevisual";
+import ReactPlayer from "react-player";
 
 
 const CinemaContainer = styled(motion.div)`
@@ -64,23 +66,23 @@ const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted,
   const borderRadius = isMobile ? '24px' : '30px'; // Rounded corners on mobile for aesthetic card look
   const actualWidth = width; // Use container width (with padding) instead of full viewport
 
-  // Play/Pause Logic
+  // Play/Pause Logic - Re-implemented for native video tag
   React.useEffect(() => {
     if (videoRef.current) {
       if (isActive) {
+        // Force muted on the element itself to ensure autoplay works initially
+        videoRef.current.muted = isMuted; // Sync Mute
         const playPromise = videoRef.current.play();
         if (playPromise !== undefined) {
           playPromise.catch(error => {
-            console.log("Auto-play prevented:", error);
+            console.log("Autoplay prevented", error);
           });
         }
       } else {
         videoRef.current.pause();
-        videoRef.current.currentTime = 0; // Reset to start
-        // Mute state is now controlled by parent, do not reset it here
       }
     }
-  }, [isActive]);
+  }, [isActive, isMuted]); // Re-run when active or mute state changes
 
   const handleLike = (e) => {
     e.stopPropagation();
@@ -88,7 +90,7 @@ const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted,
   };
 
   const togglePlay = (e) => {
-    // Basic tap to play/pause
+    e.stopPropagation();
     if (videoRef.current) {
       if (videoRef.current.paused) {
         videoRef.current.play();
@@ -110,7 +112,8 @@ const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted,
         scrollSnapAlign: 'center'
       }}
       // Use margin to trigger earlier/later without requiring 60% visibility
-      viewport={{ amount: 0.5, margin: "-10% 0px -10% 0px" }}
+      // Use margin to trigger earlier/later without requiring 60% visibility
+      viewport={{ amount: 0.6 }} // Reduced complexity
       onViewportEnter={() => onInView(index)}
     >
       <motion.div
@@ -127,104 +130,114 @@ const CinematicVideoItem = ({ video, index, isActive, onInView, format, isMuted,
           y: isActive ? 0 : 50, // Slight vertical movement
         }}
         transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-          mass: 1
+          duration: 0.4,
+          ease: "easeOut" // Much cheaper than spring
         }}
+        // Stricter viewport to prevent overlap lagging
+        viewport={{ amount: 0.7, margin: "0px" }}
       >
         <VideoCard
           $isActive={isActive}
           $glowColor={video.glowColor}
           style={{ borderRadius, width: '100%', height: '100%' }}
         >
-          {isActive && (
-            <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 30 }}>
-              <RecIndicator>REC</RecIndicator>
+          <VideoContentWrapper>
+            {isActive && (
+              <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 30 }}>
+                <RecIndicator>REC</RecIndicator>
+              </div>
+            )}
+
+            <div
+              onClick={togglePlay} // Tap to toggle play/pause
+              style={{ width: '100%', height: '100%', background: '#000', position: 'relative', cursor: 'pointer' }}
+            >
+              <video
+                ref={videoRef}
+                src={video.src}
+                muted={true} // Force muted for autoplay policy
+                loop
+                playsInline
+                // React handles boolean attributes better with camelCase, but we add both for safety
+                webkit-playsinline="true"
+                preload="auto"
+                onCanPlay={() => {
+                  if (isActive && videoRef.current) {
+                    videoRef.current.play().catch(e => console.log("onCanPlay play error", e));
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block', // Crucial for removing bottom spacing
+                  transform: 'translateZ(0)', // Hardware acceleration
+                }}
+              />
+
+              {/* Reel UI Overlays - Only visible when Active */}
+              <AnimatePresence>
+                {isActive && (
+                  <>
+                    {/* Right Sidebar Actions */}
+                    <ReelSidebar
+                      initial={{ x: 50, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <ReelActionButton onClick={handleLike} whileTap={{ scale: 0.9 }}>
+                        {isLiked ? '❤️' : '🤍'}
+                      </ReelActionButton>
+
+                      <ReelActionButton onClick={(e) => { e.stopPropagation(); toggleMute(); }} whileTap={{ scale: 0.9 }}>
+                        {isMuted ? '🔇' : '🔊'}
+                      </ReelActionButton>
+
+                      <ReelActionButton whileTap={{ scale: 0.9 }}>
+                        🔗
+                      </ReelActionButton>
+
+                      <ReelActionButton style={{ borderRadius: '15px' }} whileTap={{ scale: 0.9 }}>
+                        <div style={{ width: '24px', height: '24px', background: 'white', borderRadius: '50%' }} />
+                      </ReelActionButton>
+                    </ReelSidebar>
+
+                    {/* Bottom Info Gradient */}
+                    <ReelBottomInfo
+                      initial={{ y: 50, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                        <TagPill>#{video.title.split(' ')[0]}</TagPill>
+                        <TagPill>#Portfolio</TagPill>
+                      </div>
+                      <h3>{video.title}</h3>
+                      <p>{video.description}</p>
+                    </ReelBottomInfo>
+                  </>
+                )}
+              </AnimatePresence>
+
+              {/* Play Overlay - Fades out when active */}
+              <AnimatePresence>
+                {!isActive && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                  >
+                    <Thumbnail>
+                      <PlayOverlay>
+                        <div className="icon">▶</div>
+                      </PlayOverlay>
+                    </Thumbnail>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          )}
-
-          <div
-            onClick={togglePlay} // Tap to toggle play/pause
-            style={{ width: '100%', height: '100%', background: '#000', position: 'relative', cursor: 'pointer' }}
-          >
-            <video
-              ref={videoRef}
-              src={video.src}
-              muted={isMuted}
-              loop
-              playsInline
-              preload="auto"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius
-              }}
-            />
-
-            {/* Reel UI Overlays - Only visible when Active */}
-            <AnimatePresence>
-              {isActive && (
-                <>
-                  {/* Right Sidebar Actions */}
-                  <ReelSidebar
-                    initial={{ x: 50, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <ReelActionButton onClick={handleLike} whileTap={{ scale: 0.9 }}>
-                      {isLiked ? '❤️' : '🤍'}
-                    </ReelActionButton>
-
-                    <ReelActionButton onClick={(e) => { e.stopPropagation(); toggleMute(); }} whileTap={{ scale: 0.9 }}>
-                      {isMuted ? '🔇' : '🔊'}
-                    </ReelActionButton>
-
-                    <ReelActionButton whileTap={{ scale: 0.9 }}>
-                      🔗
-                    </ReelActionButton>
-
-                    <ReelActionButton style={{ borderRadius: '15px' }} whileTap={{ scale: 0.9 }}>
-                      <div style={{ width: '24px', height: '24px', background: 'white', borderRadius: '50%' }} />
-                    </ReelActionButton>
-                  </ReelSidebar>
-
-                  {/* Bottom Info Gradient */}
-                  <ReelBottomInfo
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                      <TagPill>#{video.title.split(' ')[0]}</TagPill>
-                      <TagPill>#Portfolio</TagPill>
-                    </div>
-                    <h3>{video.title}</h3>
-                    <p>{video.description}</p>
-                  </ReelBottomInfo>
-                </>
-              )}
-            </AnimatePresence>
-
-            {/* Play Overlay - Fades out when active */}
-            <AnimatePresence>
-              {!isActive && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                >
-                  <Thumbnail>
-                    <PlayOverlay>
-                      <div className="icon">▶</div>
-                    </PlayOverlay>
-                  </Thumbnail>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          </VideoContentWrapper>
         </VideoCard>
       </motion.div>
     </motion.div>
@@ -400,27 +413,59 @@ const VideoStreamContainer = styled.div`
 
 const VideoCard = styled(motion.div)`
   position: relative;
-  background: #000;
-  overflow: hidden;
-  box-shadow: 0 20px 80px rgba(0,0,0,0.8);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: transparent; /* Changed from black to prevent ugly background artifacts */
+  border-radius: 30px;
+  /* Remove box-shadow from container to prevent lag, use pseudo-element instead */
+  border: 1px solid rgba(255,255,255,0.08); /* Frame border */
   transition: border-color 0.3s ease;
-  
-  will-change: transform, box-shadow; // Optimization hint
-  
+  overflow: visible; /* CRITICAL: Must be visible for glow to show outside */
+  z-index: 1;
+
+  will-change: transform; /* Hint for compositor */
+
   ${props => props.$isActive && css`
     border-color: rgba(255,255,255,0.3);
-    box-shadow: 0 0 40px ${props.$glowColor || 'rgba(255, 20, 147, 0.5)'};
-    animation: ${activeGlow} 4s infinite ease-in-out;
-    --glow-color: ${props.$glowColor || 'rgba(255, 20, 147, 0.5)'};
   `}
+
+  /* GPU Optimized Pulse Glow */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -15px; /* Extend further */
+    border-radius: 45px; /* Slightly larger radius for the glow */
+    background: ${props => props.$glowColor || 'rgba(255, 20, 147, 0.5)'};
+    filter: blur(25px); /* Softer blur */
+    opacity: 0;
+    z-index: -1;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    will-change: opacity; /* GPU Hint */
+    ${props => props.$isActive && css`
+      animation: ${pulseGlowOpacity} 3s infinite ease-in-out;
+    `}
+  }
 `;
 
-// Update keyframe to use CSS variable for dynamic color
-const activeGlow = keyframes`
-  0% { box-shadow: 0 0 20px var(--glow-color); }
-  50% { box-shadow: 0 0 50px var(--glow-color); }
-  100% { box-shadow: 0 0 20px var(--glow-color); }
+
+const VideoContentWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit; /* Match VideoCard's 30px */
+  overflow: hidden; /* CRITICAL: Clips the video and overlays */
+  background: #000;
+  z-index: 2; /* Sit on top of the glow */
+  
+  /* Safari fix for border-radius + overflow:hidden with video */
+  transform: translateZ(0); 
+  mask-image: -webkit-radial-gradient(white, black); 
+`;
+
+// Opacity animation is much cheaper for the GPU
+const pulseGlowOpacity = keyframes`
+  0% { opacity: 0.2; }
+  50% { opacity: 0.6; }
+  100% { opacity: 0.2; }
 `;
 
 const Thumbnail = styled.div`
@@ -641,7 +686,6 @@ const ReelBottomInfo = styled(motion.div)`
   padding-bottom: calc(30px + env(safe-area-inset-bottom)); /* Safe area padding */
   background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
   z-index: 25;
-  z-index: 25;
   text-align: left;
   pointer-events: none;
 
@@ -769,35 +813,77 @@ const SwitcherButton = styled.button`
 
 const Video = memo(() => {
   const [activeCategory, setActiveCategory] = useState("short");
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isGlobalMuted, setIsGlobalMuted] = useState(true); // Global mute state
+  const [activeIndex, setActiveIndex] = useState(-1); // Start with -1 so no video plays initially
+  const [isGlobalMuted, setIsGlobalMuted] = useState(true); // Global mute state - MUST be true for autoplay to work
+  const [showTopBar, setShowTopBar] = useState(false); // State for top bar visibility
   const navigate = useNavigate();
+  const contentRef = React.useRef(null);
+  const containerRef = React.useRef(null); // Ref for the scrollable container
+
+  // Manage Scroll for Top Bar Visibility
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      // Show top bar if scrolled past 1.5x of the viewport
+      const threshold = window.innerHeight * 1.5;
+      const shouldShow = container.scrollTop > threshold;
+
+      // Avoid redundant state updates
+      setShowTopBar(prev => {
+        if (prev !== shouldShow) return shouldShow;
+        return prev;
+      });
+
+      // Stop videos if scrolling back up
+      if (!shouldShow) {
+        setActiveIndex(prev => {
+          if (prev !== -1) return -1;
+          return prev;
+        });
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToContent = useCallback(() => {
+    contentRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const handleVideoInView = useCallback((index) => {
+    // Prevent video activation if we are in the intro/showcase sections
+    if (containerRef.current && containerRef.current.scrollTop > window.innerHeight * 1.5) {
+      setActiveIndex(index);
+    }
+  }, []);
 
   const handleCategoryChange = (category) => {
     setActiveCategory(category);
     setActiveIndex(0);
-    // When changing category, scroll back to the hero section (top)
-    document.querySelector('.sc-fszimp')?.scrollTo({ top: 0, behavior: 'smooth' }); // Use class based generic selector if ref not available, or just window
-    // Actually, since we are inside a custom scroll container, we need to scroll THAT container.
-    // Ideally we should use a Ref for CinemaContainer.
+    // When changing category, reset scroll (optionally to content start)
+    contentRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const currentVideos = useMemo(() => videoProjects[activeCategory], [activeCategory]);
 
   return (
     <CinemaContainer
+      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <GrainOverlay />
-      <Vignette />
+      {/* <GrainOverlay /> */}
+      {/* <Vignette /> */}
 
       <FixedTopBar
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: showTopBar ? 0 : -100, opacity: showTopBar ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: "circOut" }}
       >
         <NavLeft>
           <GlassButton
@@ -828,11 +914,15 @@ const Video = memo(() => {
         <div style={{ flex: 1 }}>{/* Spacer for right side balance */}</div>
       </FixedTopBar>
 
-      <Container>
-        <CinemaHeader style={{ marginTop: '0px' }}>
+      {/* New Hero Section */}
+      <VynceVisual onButtonClick={scrollToContent} />
+
+      <Container ref={contentRef}>
+        <CinemaHeader style={{ marginTop: '0px', minHeight: '100vh', scrollSnapAlign: 'start' }}>
           <CinemaTitle
             initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
             transition={{ duration: 1 }}
           >
             Showcase<span>Portfolio</span>
@@ -849,6 +939,21 @@ const Video = memo(() => {
             <p>Scroll to explore</p>
             <div className="arrow">↓</div>
           </ScrollPrompt>
+
+          <CategorySwitcher style={{ marginTop: '2rem' }}>
+            <SwitcherButton
+              active={activeCategory === 'short'}
+              onClick={() => handleCategoryChange('short')}
+            >
+              Shorts
+            </SwitcherButton>
+            <SwitcherButton
+              active={activeCategory === 'long'}
+              onClick={() => handleCategoryChange('long')}
+            >
+              Cinematic
+            </SwitcherButton>
+          </CategorySwitcher>
         </CinemaHeader>
 
         <VideoStreamContainer>
@@ -869,7 +974,7 @@ const Video = memo(() => {
                   isActive={activeIndex === index}
                   isMuted={isGlobalMuted}
                   toggleMute={() => setIsGlobalMuted(prev => !prev)}
-                  onInView={setActiveIndex}
+                  onInView={handleVideoInView}
                 />
               ))}
             </motion.div>
