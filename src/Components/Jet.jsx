@@ -269,7 +269,7 @@ export default function Jet() {
             onMouseEnter={() => setIsButtonHovered(true)}
             onMouseLeave={() => setIsButtonHovered(false)}
           >
-            f#ck me more.
+            Click to know more.
           </GlassButton>
         </ButtonContainer>
 
