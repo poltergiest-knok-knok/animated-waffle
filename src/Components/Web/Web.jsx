@@ -9,6 +9,7 @@ import vinwearImg from "./assets/1000styles.png";
 import squareImg from "./assets/Square.png";
 import gjmicImg from "./assets/GJMIC.png";
 import GlassButton from "../Shared/GlassButton";
+import SEO from "../Shared/SEO";
 
 // ============== KEYFRAME EFFECTS =================
 
@@ -549,6 +550,10 @@ export default function Web() {
       initial="hidden"
       animate="visible"
     >
+      <SEO
+        title="UnmuteXE - Web Development"
+        description="Full Stack Web Development Portfolio by UnmuteXE featuring React, Node.js, and more."
+      />
       <div style={{ position: 'fixed', top: '30px', left: '30px', zIndex: 1000 }}>
         <GlassButton onClick={() => navigate('/dark')}>
           ← Back

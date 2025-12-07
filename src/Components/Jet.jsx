@@ -1,4 +1,5 @@
 // src/components/Jet.jsx
+import SEO from "./Shared/SEO";
 import React, { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -256,6 +257,7 @@ export default function Jet() {
 
   return (
     <JetRoot>
+      <SEO title="UnmuteXE - Home" description="Welcome to UnmuteXE Portfolio. Specializing in Web Design, Video Editing, and Visual Arts." />
       <MainContainer>
         {/* StyledCanvas at z-index 1 */}
         <StyledCanvas ref={canvasRef} />

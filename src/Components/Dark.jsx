@@ -8,6 +8,7 @@ import { MeshDistortMaterial, Sphere, TorusKnot, Icosahedron, Tetrahedron, Float
 
 
 import GlassButton from "./Shared/GlassButton";
+import SEO from "./Shared/SEO";
 
 /* ========================================================= */
 /*                  🔥 KEYFRAME ANIMATIONS 🔥                */
@@ -527,6 +528,10 @@ export default function Dark() {
 
   return (
     <DarkContainer>
+      <SEO
+        title="UnmuteXE - Portfolio Hub"
+        description="The central hub of UnmuteXE Portfolio. Choose between Web Development and Video Editing showcases."
+      />
       <LiquidBackground />
 
       {/* ------------ LIQUID SVG FILTER ------------ */}

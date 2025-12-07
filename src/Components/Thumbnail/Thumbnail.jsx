@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import GlassButton from '../Shared/GlassButton';
+import SEO from '../Shared/SEO';
 import Banner3D from './Banner3D';
 
 // --- Keyframes ---
@@ -310,6 +311,10 @@ export default function Thumbnail() {
 
   return (
     <PageContainer>
+      <SEO
+        title="UnmuteXE - Graphic Design"
+        description="A showcase of high-impact visuals, cinematic compositions, and gaming aesthetics by UnmuteXE."
+      />
       <Banner3D />
 
       <ContentWrapper>

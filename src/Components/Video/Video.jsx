@@ -4,6 +4,7 @@ import styled, { keyframes, css } from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 import GlassButton from "../Shared/GlassButton"; // Import shared GlassButton
+import SEO from "../Shared/SEO";
 import VynceVisual from "./vyncevisual";
 import ReactPlayer from "react-player";
 
@@ -883,6 +884,10 @@ const Video = memo(() => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.6 }}
     >
+      <SEO
+        title="UnmuteXE - VynceVisuals"
+        description="Cinematic Video Editing & Motion Graphics Portfolio by UnmuteXE."
+      />
       {/* <GrainOverlay /> */}
       {/* <Vignette /> */}
 

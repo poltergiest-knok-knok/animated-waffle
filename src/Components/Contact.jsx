@@ -1,6 +1,7 @@
 import React from "react";
 import styled, { keyframes } from "styled-components";
 import GlassButton from "./Shared/GlassButton";
+import SEO from "./Shared/SEO";
 
 // --- Icons ---
 
@@ -250,6 +251,10 @@ const SocialLink = styled.a`
 export default function Contact() {
     return (
         <ContactRoot>
+            <SEO
+                title="UnmuteXE - Contact"
+                description="Get in touch with UnmuteXE for collaborations on Web Development, Video Editing, or Graphic Design."
+            />
             <BackgroundGradient />
             <ContentContainer>
                 <Title>Get In Touch</Title>
