@@ -333,7 +333,12 @@ const VideoWrapper = styled.div`
 // Reel Modal Styles
 const ReelModal = styled(motion.div)`
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: #000;
   z-index: 2000;
   display: flex;
@@ -341,11 +346,15 @@ const ReelModal = styled(motion.div)`
   justify-content: center;
   overflow: hidden;
   touch-action: none;
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
   
   @media(max-width: 768px) {
-    /* Prevent any scrolling on mobile */
-    -webkit-overflow-scrolling: touch;
+    /* Fullscreen on mobile */
+    inset: 0;
+    position: fixed;
+    height: 100vh;
+    height: -webkit-fill-available;
   }
 `;
 
@@ -374,10 +383,12 @@ const ReelVideoWrapper = styled.div`
   touch-action: none;
 
   @media(max-width: 768px) {
-    width: 100%;
-    max-width: 100%;
+    width: 100vw;
+    max-width: 100vw;
     height: 100vh;
-    max-height: 100vh;
+    height: -webkit-fill-available;
+    max-height: none;
+    aspect-ratio: auto;
   }
 `;
 
@@ -734,8 +745,20 @@ const ChatPrompt = styled(motion.div)`
 const VideoItem = ({ video, onClick, index }) => {
   const videoRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    // Detect mobile devices
+    const checkMobile = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    };
+    setIsMobile(checkMobile());
+  }, []);
 
   const handleMouseEnter = () => {
+    // Disable hover-to-play on mobile
+    if (isMobile) return;
+
     setIsHovered(true);
     if (videoRef.current) {
       videoRef.current.play().catch(() => { });
@@ -743,6 +766,9 @@ const VideoItem = ({ video, onClick, index }) => {
   };
 
   const handleMouseLeave = () => {
+    // Disable hover effects on mobile
+    if (isMobile) return;
+
     setIsHovered(false);
     if (videoRef.current) {
       videoRef.current.pause();
@@ -767,6 +793,16 @@ const VideoItem = ({ video, onClick, index }) => {
             }
             return url;
           })()}
+          poster={(() => {
+            // Generate thumbnail from Cloudinary video
+            let url = video.src;
+            if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+              const parts = url.split('/upload/');
+              // Get thumbnail from video at 1 second mark
+              return `${parts[0]}/upload/so_1.0,w_500,q_auto,f_jpg/${parts[1].replace('.mp4', '.jpg')}`;
+            }
+            return '';
+          })()}
           muted={true}
           loop
           playsInline
@@ -780,8 +816,9 @@ const VideoItem = ({ video, onClick, index }) => {
           }}
         />
 
+        {/* Thumbnail overlay - always visible on mobile, hidden on hover on desktop */}
         <AnimatePresence>
-          {!isHovered && (
+          {(!isHovered || isMobile) && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -789,7 +826,7 @@ const VideoItem = ({ video, onClick, index }) => {
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent 60%)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-end',
@@ -805,6 +842,15 @@ const VideoItem = ({ video, onClick, index }) => {
               }}>
                 {video.title}
               </h3>
+              <p style={{
+                fontSize: '0.85rem',
+                margin: '8px 0 0 0',
+                color: 'rgba(255,255,255,0.7)',
+                textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                fontWeight: 300
+              }}>
+                {video.description}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -833,18 +879,45 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
     setIsLiked(false);
     setShowChatPrompt(false);
 
-    // Prevent body scroll when modal is open
+    // Safari-specific scroll prevention
+    const scrollY = window.scrollY;
+    const scrollX = window.scrollX;
+
+    // Prevent body scroll when modal is open (Safari compatible)
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.position = 'fixed';
+    document.documentElement.style.width = '100%';
+    document.documentElement.style.height = '100%';
+    document.documentElement.style.top = `-${scrollY}px`;
+    document.documentElement.style.left = `-${scrollX}px`;
+
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     document.body.style.height = '100%';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = `-${scrollX}px`;
+    document.body.style.touchAction = 'none';
 
     return () => {
       // Re-enable body scroll when modal closes
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.position = '';
+      document.documentElement.style.width = '';
+      document.documentElement.style.height = '';
+      document.documentElement.style.top = '';
+      document.documentElement.style.left = '';
+
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.width = '';
       document.body.style.height = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.touchAction = '';
+
+      // Restore scroll position
+      window.scrollTo(scrollX, scrollY);
     };
   }, [video]);
 
@@ -997,7 +1070,7 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'contain',
+              objectFit: window.innerWidth <= 768 ? 'cover' : 'contain',
               display: 'block',
             }}
           />
