@@ -380,7 +380,6 @@ const ReelVideoWrapper = styled.div`
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  touch-action: none;
 
   @media(max-width: 768px) {
     width: 100vw;
@@ -410,6 +409,8 @@ const ReelCloseButton = styled(motion.button)`
   color: white;
   font-size: 1.5rem;
   transition: all 0.3s ease;
+  pointer-events: auto;
+  touch-action: auto;
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -435,6 +436,8 @@ const ReelNavButton = styled(motion.button)`
   color: white;
   font-size: 1.8rem;
   transition: all 0.3s ease;
+  pointer-events: auto;
+  touch-action: auto;
 
   &:hover {
     background: rgba(255, 255, 255, 0.15);
@@ -579,6 +582,8 @@ const ReelActionBar = styled.div`
   flex-direction: column;
   gap: 20px;
   z-index: 2001;
+  pointer-events: auto;
+  touch-action: auto;
 
   @media(max-width: 768px) {
     right: 10px;
@@ -966,7 +971,8 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
 
   // Scroll/Swipe navigation
   const scrollTimeoutRef = useRef(null);
-  const touchStartRef = useRef(0);
+  const touchStartRef = useRef({ y: 0, x: 0, time: 0 });
+  const touchMoveRef = useRef(false);
 
   const handleWheel = (e) => {
     e.preventDefault();
@@ -989,17 +995,54 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
   };
 
   const handleTouchStart = (e) => {
-    e.preventDefault();
-    touchStartRef.current = e.touches[0].clientY;
+    // Check if touch started on an interactive element (button, link, etc)
+    const target = e.target;
+    const isInteractive = target.closest('button, a, input, textarea, select, [role="button"]');
+
+    if (isInteractive) {
+      // Don't track swipes if touching interactive elements
+      touchMoveRef.current = false;
+      return;
+    }
+
+    // Don't prevent default - allow button clicks
+    touchMoveRef.current = false;
+    touchStartRef.current = {
+      y: e.touches[0].clientY,
+      x: e.touches[0].clientX,
+      time: Date.now()
+    };
+  };
+
+  const handleTouchMove = (e) => {
+    // Skip if touching interactive elements
+    if (touchStartRef.current.time === 0) return;
+
+    // Track if user is actually moving (swiping)
+    const currentY = e.touches[0].clientY;
+    const diffY = Math.abs(touchStartRef.current.y - currentY);
+
+    if (diffY > 10) {
+      // User is swiping, prevent scroll
+      e.preventDefault();
+      touchMoveRef.current = true;
+    }
   };
 
   const handleTouchEnd = (e) => {
-    e.preventDefault();
-    const touchEnd = e.changedTouches[0].clientY;
-    const diff = touchStartRef.current - touchEnd;
+    // Skip if no valid touch start
+    if (touchStartRef.current.time === 0) return;
 
-    // Swipe threshold
-    if (Math.abs(diff) > 50) {
+    const touchEnd = e.changedTouches[0].clientY;
+    const diff = touchStartRef.current.y - touchEnd;
+    const touchDuration = Date.now() - touchStartRef.current.time;
+
+    // Only handle as swipe if:
+    // 1. User actually moved (not a tap)
+    // 2. Moved more than threshold
+    // 3. Duration is reasonable for a swipe
+    if (touchMoveRef.current && Math.abs(diff) > 50 && touchDuration < 500) {
+      e.preventDefault();
       if (diff > 0 && canGoNext) {
         // Swipe up - next video
         onNext();
@@ -1008,6 +1051,10 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
         onPrev();
       }
     }
+    // If not a swipe, allow default behavior (button clicks work)
+
+    // Reset
+    touchStartRef.current = { y: 0, x: 0, time: 0 };
   };
 
   React.useEffect(() => {
@@ -1026,6 +1073,7 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
       transition={{ duration: 0.3 }}
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <ReelCloseButton onClick={onClose} whileTap={{ scale: 0.9 }}>
