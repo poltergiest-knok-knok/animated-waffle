@@ -339,6 +339,14 @@ const ReelModal = styled(motion.div)`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: contain;
+  
+  @media(max-width: 768px) {
+    /* Prevent any scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+  }
 `;
 
 const ReelContainer = styled.div`
@@ -348,6 +356,8 @@ const ReelContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  touch-action: none;
 `;
 
 const ReelVideoWrapper = styled.div`
@@ -360,11 +370,13 @@ const ReelVideoWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  touch-action: none;
 
   @media(max-width: 768px) {
     width: 100%;
     max-width: 100%;
-    height: auto;
+    height: 100vh;
     max-height: 100vh;
   }
 `;
@@ -820,6 +832,20 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
     // Reset like when video changes
     setIsLiked(false);
     setShowChatPrompt(false);
+
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+
+    return () => {
+      // Re-enable body scroll when modal closes
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
   }, [video]);
 
   const handlePlayPause = () => {
@@ -890,10 +916,12 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
   };
 
   const handleTouchStart = (e) => {
+    e.preventDefault();
     touchStartRef.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e) => {
+    e.preventDefault();
     const touchEnd = e.changedTouches[0].clientY;
     const diff = touchStartRef.current - touchEnd;
 
