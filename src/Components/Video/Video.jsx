@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
@@ -103,7 +103,7 @@ const videoProjects = {
 // STYLED COMPONENTS
 // ==========================================
 
-const CinemaContainer = styled(motion.div)`
+const PageContainer = styled.div`
   min-height: 100vh;
   background: #050505;
   color: white;
@@ -121,87 +121,6 @@ const CinemaContainer = styled(motion.div)`
   }
 `;
 
-const Container = styled.div`
-  position: relative;
-  z-index: 2;
-  padding: 60px 20px;
-  max-width: 1600px;
-  margin: 0 auto;
-`;
-
-const VideoStreamContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 30px;
-  padding: 40px 20px;
-  padding-bottom: 10vh;
-  max-width: 1400px;
-  margin: 0 auto;
-  z-index: 5;
-  position: relative;
-
-  @media(max-width: 768px) {
-    grid-template-columns: 1fr; /* Single column on mobile */
-    gap: 40px;
-  }
-`;
-
-const VideoCard = styled(motion.div)`
-  position: relative;
-  background: #000;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  z-index: 1;
-  backface-visibility: hidden;
-  will-change: transform;
-`;
-
-const VideoContentWrapper = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  overflow: hidden;
-  background: #000;
-  z-index: 2;
-  transform: translateZ(0);
-  mask-image: -webkit-radial-gradient(white, black);
-`;
-
-const CinemaHeader = styled(motion.div)`
-  text-align: center;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 10;
-  min-height: 20vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-`;
-
-const CinemaTitle = styled(motion.h1)`
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(2.5rem, 5vw, 5rem);
-  font-weight: 300;
-  letter-spacing: clamp(0.2rem, 1vw, 1rem);
-  color: #fff;
-  text-transform: uppercase;
-  margin-bottom: 20px;
-  text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
-  
-  span {
-    display: block;
-    font-size: clamp(0.8rem, 1.5vw, 1rem);
-    letter-spacing: 0.5rem;
-    opacity: 0.5;
-    margin-top: 10px;
-    font-weight: 600;
-  }
-`;
-
-// Header Components
 const FixedTopBar = styled(motion.div)`
   position: fixed;
   top: 0;
@@ -216,7 +135,6 @@ const FixedTopBar = styled(motion.div)`
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
 
   @media(max-width: 768px) {
     padding: 10px 15px;
@@ -232,67 +150,130 @@ const NavLeft = styled.div`
   justify-content: flex-start;
 `;
 
-const NavCenter = styled.div`
-  flex: 2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 const NavRight = styled.div`
   flex: 1;
   display: flex;
   justify-content: flex-end;
 `;
 
-const CategorySwitcher = styled.div`
-  display: flex;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 5px;
-  border-radius: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  gap: 5px;
-`;
-
-const SwitcherButton = styled.button`
-  background: ${props => props.active ? 'rgba(255, 255, 255, 1)' : 'transparent'};
-  color: ${props => props.active ? '#000' : 'rgba(255, 255, 255, 0.7)'};
-  border: none;
-  padding: 8px 20px;
-  border-radius: 30px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: ${props => props.active ? '0 4px 15px rgba(0,0,0,0.2)' : 'none'};
-  
-  &:hover {
-    color: ${props => props.active ? '#000' : '#fff'};
-    background: ${props => props.active ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.05)'};
-  }
-
-  @media(max-width: 768px) {
-    padding: 8px 16px;
-    font-size: 0.8rem;
-  }
-`;
-
-// Selection View Components
-const SelectionSection = styled.div`
+// Showcase Section
+const ShowcaseSection = styled.section`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   position: relative;
-  padding: 40px 20px;
+  padding: 80px 20px;
   background: #000;
   z-index: 10;
 `;
 
-const SelectionTitle = styled(motion.h2)`
+const ShowcaseTitle = styled(motion.h1)`
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  letter-spacing: 1.5rem;
+  color: #fff;
+  margin-bottom: 10px;
+  text-align: center;
+  
+  @media(max-width: 768px) {
+    letter-spacing: 0.8rem;
+  }
+`;
+
+const ShowcaseSubtitle = styled(motion.p)`
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.4rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 20px;
+  text-align: center;
+`;
+
+const ShowcaseDescription = styled(motion.p)`
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.15rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 60px;
+  text-align: center;
+  max-width: 600px;
+`;
+
+const ScrollPrompt = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+  
+  span {
+    font-size: 0.75rem;
+    letter-spacing: 0.2rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+  }
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    animation: bounce 2s infinite;
+  }
+  
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+  }
+`;
+
+const CategoryButtons = styled.div`
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+`;
+
+const PillButton = styled(motion.button)`
+  padding: 12px 40px;
+  background: ${props => props.$active ? '#fff' : 'rgba(255, 255, 255, 0.1)'};
+  color: ${props => props.$active ? '#000' : '#fff'};
+  border: 1px solid ${props => props.$active ? '#fff' : 'rgba(255, 255, 255, 0.2)'};
+  border-radius: 50px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: ${props => props.$active ? '#fff' : 'rgba(255, 255, 255, 0.15)'};
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+  }
+  
+  @media(max-width: 768px) {
+    padding: 10px 35px;
+    font-size: 0.85rem;
+  }
+`;
+
+// Video Gallery Section
+const VideoSection = styled.section`
+  min-height: 100vh;
+  position: relative;
+  padding: 80px 20px;
+  background: #000;
+  z-index: 10;
+`;
+
+const VideoSectionTitle = styled(motion.h2)`
   font-size: clamp(2rem, 4vw, 3rem);
   font-family: 'Inter', sans-serif;
   font-weight: 300;
@@ -312,90 +293,538 @@ const SelectionTitle = styled(motion.h2)`
   }
 `;
 
-const CardsRow = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 40px;
+const VideoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+
+  @media(max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+`;
+
+const VideoCard = styled.div`
+  position: relative;
+  background: #000;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  aspect-ratio: 9/16;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.02);
+  }
+`;
+
+const VideoWrapper = styled.div`
+  position: relative;
   width: 100%;
-  max-width: 1200px;
+  height: 100%;
+  background: #000;
+`;
+
+// Reel Modal Styles
+const ReelModal = styled(motion.div)`
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ReelContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ReelVideoWrapper = styled.div`
+  position: relative;
+  width: auto;
+  height: 100%;
+  max-width: 56.25vh; /* 9:16 aspect ratio */
+  aspect-ratio: 9/16;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media(max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 100vh;
+  }
+`;
+
+const ReelCloseButton = styled(motion.button)`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 2001;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+`;
+
+const ReelNavButton = styled(motion.button)`
+  position: fixed;
+  right: 20px;
+  ${props => props.$direction === 'prev' ? 'top: calc(50% - 80px);' : 'top: calc(50% + 20px);'}
+  z-index: 2001;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 1.8rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  @media(max-width: 768px) {
+    display: none;
+  }
+`;
+
+// Brand Indicator (Top-Left) - Clickable
+const RecIndicator = styled.a`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ff3333;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  text-decoration: none;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: textBlink 2s infinite;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #ff5555;
+    transform: scale(1.05);
+  }
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #ff3333;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ff3333;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 10px #ff3333; }
+    50% { opacity: 0.5; box-shadow: 0 0 5px #ff3333; }
+  }
+
+  @keyframes textBlink {
+    0%, 100% { color: #ff3333; }
+    50% { color: #ff6666; }
+  }
+
+  @media(max-width: 768px) {
+    top: 15px;
+    left: 15px;
+    font-size: 0.65rem;
+  }
+`;
+
+const ReelInfo = styled(motion.div)`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  max-width: 65%;
+  padding: 30px;
+  padding-bottom: calc(30px + env(safe-area-inset-bottom));
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+
+  @media(max-width: 768px) {
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    max-width: 75%;
+  }
+`;
+
+const HashtagRow = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 `;
 
-const CategorySelectionCard = styled(motion.div)`
-  flex: 1;
-  min-width: 300px;
-  aspect-ratio: 16/9;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
+const Hashtag = styled.span`
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  font-weight: 500;
+
+  @media(max-width: 768px) {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+  }
+`;
+
+const ReelTitle = styled.h3`
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  line-height: 1.2;
+
+  @media(max-width: 768px) {
+    font-size: 1.3rem;
+  }
+`;
+
+const ReelDescription = styled.p`
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  line-height: 1.4;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+
+  @media(max-width: 768px) {
+    font-size: 0.85rem;
+  }
+`;
+
+// Reel Action Sidebar (Right Side)
+const ReelActionBar = styled.div`
+  position: absolute;
+  right: 20px;
+  bottom: 120px;
   display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 2001;
+
+  @media(max-width: 768px) {
+    right: 10px;
+    bottom: calc(100px + env(safe-area-inset-bottom));
+    gap: 15px;
+  }
+`;
+
+const ActionButton = styled(motion.button)`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  padding: 40px;
-  transition: border-color 0.3s ease;
-
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.08);
-    
-    h3 {
-      transform: scale(1.1);
-      letter-spacing: 1rem;
-    }
-  }
-
-  h3 {
-    font-size: 2rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5rem;
-    color: #fff;
-    font-weight: 300;
-    transition: all 0.5s ease;
-    z-index: 2;
-  }
+  transition: all 0.3s ease;
+  color: white;
+  font-size: 1.5rem;
+  pointer-events: auto;
   
+  /* Liquid glass glow */
   &::before {
     content: '';
     position: absolute;
-    width: 200px;
-    height: 200px;
-    background: ${props => props.$glow || 'rgba(255,255,255,0.1)'};
-    filter: blur(80px);
+    inset: -2px;
     border-radius: 50%;
+    background: linear-gradient(45deg, 
+      rgba(255, 255, 255, 0.1), 
+      rgba(255, 255, 255, 0.05)
+    );
     opacity: 0;
-    transition: opacity 0.5s ease;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    transition: opacity 0.3s ease;
   }
 
-  &:hover::before {
-    opacity: 1;
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(255, 255, 255, 0.2),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+    
+    &::before {
+      opacity: 1;
+    }
   }
-  
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  /* Icon glow on hover */
+  &:hover svg,
+  &:hover span {
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+  }
+
   @media(max-width: 768px) {
-    min-width: 100%;
-    aspect-ratio: 4/3;
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
   }
 `;
+
+const ActionLabel = styled.span`
+  font-size: 0.7rem;
+  margin-top: 4px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+`;
+
+// Mute button with special styling
+const MuteButton = styled(ActionButton)`
+  ${props => props.$isMuted && `
+    background: rgba(255, 100, 100, 0.15);
+    border-color: rgba(255, 100, 100, 0.3);
+    
+    &:hover {
+      background: rgba(255, 100, 100, 0.25);
+      border-color: rgba(255, 100, 100, 0.5);
+    }
+  `}
+`;
+
+// Pause Overlay
+const PauseOverlay = styled(motion.div)`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: 5;
+  pointer-events: none;
+
+  svg {
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.8));
+  }
+
+  @media(max-width: 768px) {
+    svg {
+      width: 60px;
+      height: 60px;
+    }
+  }
+`;
+
+// Chat Prompt Tooltip
+const ChatPrompt = styled(motion.div)`
+  position: absolute;
+  right: 80px;
+  bottom: calc(120px + 60px + 35px);
+  background: rgba(255, 255, 255, 0.95);
+  color: #000;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05rem;
+  white-space: nowrap;
+  z-index: 2002;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  
+  &::after {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid rgba(255, 255, 255, 0.95);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+  }
+
+  @media(max-width: 768px) {
+    right: 70px;
+    bottom: calc(100px + 48px + 30px + env(safe-area-inset-bottom));
+    font-size: 0.75rem;
+    padding: 10px 16px;
+  }
+`;
+
+
 
 // ==========================================
 // SUB-COMPONENTS
 // ==========================================
 
-const CinematicVideoItem = ({ video }) => {
-  const videoRef = React.useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+const VideoItem = ({ video, onClick, index }) => {
+  const videoRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
 
-  const handleClick = () => {
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => { });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
+
+  return (
+    <VideoCard
+      onClick={() => onClick(index)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <VideoWrapper>
+        <video
+          ref={videoRef}
+          src={(() => {
+            let url = video.src.startsWith('http') ? video.src : (CDN_BASE_URL ? `${CDN_BASE_URL}${video.src.replace(/\s+/g, '_')}` : video.src);
+            if (url.includes('cloudinary.com') && !url.includes('/upload/')) {
+              const parts = url.split('/upload/');
+              return `${parts[0]}/upload/w_500,q_auto:eco,f_auto/${parts[1]}`;
+            }
+            return url;
+          })()}
+          muted={true}
+          loop
+          playsInline
+          disablePictureInPicture
+          preload="metadata"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+        />
+
+        <AnimatePresence>
+          {!isHovered && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+                padding: '20px',
+                pointerEvents: 'none'
+              }}
+            >
+              <h3 style={{
+                fontSize: '1.2rem',
+                margin: 0,
+                textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                fontWeight: 400
+              }}>
+                {video.title}
+              </h3>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </VideoWrapper>
+    </VideoCard>
+  );
+};
+
+// Reel Modal Component
+const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, navigate }) => {
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [showChatPrompt, setShowChatPrompt] = useState(false);
+
+  React.useEffect(() => {
+    // Auto-play when modal opens and reset like state
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.play().catch(() => { });
+      setIsPlaying(true);
+      setIsMuted(false);
+    }
+    // Reset like when video changes
+    setIsLiked(false);
+    setShowChatPrompt(false);
+  }, [video]);
+
+  const handlePlayPause = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
-        // Unmute on play
-        videoRef.current.muted = false;
         videoRef.current.play().catch(() => { });
         setIsPlaying(true);
       } else {
@@ -403,69 +832,251 @@ const CinematicVideoItem = ({ video }) => {
         setIsPlaying(false);
       }
     }
-  }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleLike = () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+
+    // Show chat prompt when liked
+    if (newLikedState) {
+      setShowChatPrompt(true);
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        setShowChatPrompt(false);
+      }, 3000);
+    }
+  };
+
+  const handleComment = () => {
+    onClose();
+    navigate('/contact');
+  };
+
+  const handleShare = () => {
+    onClose();
+    navigate('/contact');
+  };
+
+  // Scroll/Swipe navigation
+  const scrollTimeoutRef = useRef(null);
+  const touchStartRef = useRef(0);
+
+  const handleWheel = (e) => {
+    e.preventDefault();
+
+    // Clear existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Debounce scroll events
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (e.deltaY > 0 && canGoNext) {
+        // Scroll down - next video
+        onNext();
+      } else if (e.deltaY < 0 && canGoPrev) {
+        // Scroll up - previous video
+        onPrev();
+      }
+    }, 100);
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEnd = e.changedTouches[0].clientY;
+    const diff = touchStartRef.current - touchEnd;
+
+    // Swipe threshold
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && canGoNext) {
+        // Swipe up - next video
+        onNext();
+      } else if (diff < 0 && canGoPrev) {
+        // Swipe down - previous video
+        onPrev();
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5 }}
-      style={{ width: '100%', aspectRatio: '9/16' }}
-      onClick={handleClick}
+    <ReelModal
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      <VideoCard>
-        <VideoContentWrapper>
-          <div style={{ width: '100%', height: '100%', background: '#000', position: 'relative', cursor: 'pointer' }}>
-            <video
-              ref={videoRef}
-              src={(() => {
-                let url = video.src.startsWith('http') ? video.src : (CDN_BASE_URL ? `${CDN_BASE_URL}${video.src.replace(/\s+/g, '_')}` : video.src);
-                if (url.includes('cloudinary.com') && !url.includes('/upload/')) {
-                  const parts = url.split('/upload/');
-                  return `${parts[0]}/upload/w_500,q_auto:eco,f_auto/${parts[1]}`;
-                }
-                return url;
-              })()}
-              muted={true}
-              loop
-              playsInline
-              webkit-playsinline="true"
-              disablePictureInPicture
-              preload="metadata"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            />
+      <ReelCloseButton onClick={onClose} whileTap={{ scale: 0.9 }}>
+        ✕
+      </ReelCloseButton>
 
-            <AnimatePresence>
-              {!isPlaying && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'flex-end',
-                    padding: '20px',
-                    pointerEvents: 'none'
-                  }}
-                >
-                  <h3 style={{ fontSize: '1.2rem', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{video.title}</h3>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </VideoContentWrapper>
-      </VideoCard>
-    </motion.div>
+      {canGoPrev && (
+        <ReelNavButton
+          $direction="prev"
+          onClick={onPrev}
+          whileTap={{ scale: 0.9 }}
+        >
+          ↑
+        </ReelNavButton>
+      )}
+
+      {canGoNext && (
+        <ReelNavButton
+          $direction="next"
+          onClick={onNext}
+          whileTap={{ scale: 0.9 }}
+        >
+          ↓
+        </ReelNavButton>
+      )}
+
+      <ReelContainer>
+        <ReelVideoWrapper onClick={handlePlayPause}>
+          <video
+            ref={videoRef}
+            src={(() => {
+              let url = video.src.startsWith('http') ? video.src : (CDN_BASE_URL ? `${CDN_BASE_URL}${video.src.replace(/\s+/g, '_')}` : video.src);
+              if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+                const parts = url.split('/upload/');
+                return `${parts[0]}/upload/w_1080,q_auto:good,f_auto/${parts[1]}`;
+              }
+              return url;
+            })()}
+            loop
+            playsInline
+            disablePictureInPicture
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+
+          {/* Brand Indicator */}
+          <RecIndicator
+            href="https://www.instagram.com/vynce.visuals/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            vynce.visuals
+          </RecIndicator>
+
+          {/* Video Info */}
+          <ReelInfo>
+            <HashtagRow>
+              <Hashtag>#Portfolio</Hashtag>
+              <Hashtag>#Video</Hashtag>
+            </HashtagRow>
+            <ReelTitle>{video.title}</ReelTitle>
+            <ReelDescription>{video.description}</ReelDescription>
+          </ReelInfo>
+
+          {/* Action Buttons Sidebar */}
+          <ReelActionBar>
+            <ActionButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLike();
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                color: isLiked ? '#ff4458' : 'white',
+              }}
+            >
+              {isLiked ? '❤️' : '🤍'}
+            </ActionButton>
+
+            <ActionButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleComment();
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              💬
+            </ActionButton>
+
+            <ActionButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShare();
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+              </svg>
+            </ActionButton>
+
+            <MuteButton
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleMute();
+              }}
+              $isMuted={isMuted}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isMuted ? '🔇' : '🔊'}
+            </MuteButton>
+          </ReelActionBar>
+
+          {/* Pause Overlay */}
+          <AnimatePresence>
+            {!isPlaying && (
+              <PauseOverlay
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <svg viewBox="0 0 100 100" fill="white">
+                  <polygon points="30,20 30,80 80,50" />
+                </svg>
+              </PauseOverlay>
+            )}
+          </AnimatePresence>
+
+          {/* Chat Prompt Tooltip */}
+          <AnimatePresence>
+            {showChatPrompt && (
+              <ChatPrompt
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.3 }}
+              >
+                💬 Chat Now
+              </ChatPrompt>
+            )}
+          </AnimatePresence>
+        </ReelVideoWrapper>
+      </ReelContainer>
+    </ReelModal>
   );
 };
 
@@ -473,92 +1084,70 @@ const CinematicVideoItem = ({ video }) => {
 // MAIN COMPONENT
 // ==========================================
 
-const Video = memo(() => {
-  const [viewState, setViewState] = useState("landing"); // 'landing', 'short', 'long'
+const Video = () => {
   const navigate = useNavigate();
-  const showcaseRef = React.useRef(null);
+  const showcaseRef = useRef(null);
+  const videosRef = useRef(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [reelOpen, setReelOpen] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
-  const handleScrollToSelection = () => {
+  const handleScrollToShowcase = () => {
     showcaseRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSelection = (type) => {
-    setViewState(type);
-    window.scrollTo({ top: 0, behavior: 'instant' });
+  const handleScrollToVideos = (category) => {
+    setSelectedCategory(category);
+    setTimeout(() => {
+      videosRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
-  const handleBackToLanding = () => {
-    setViewState("landing");
+  const displayVideos = selectedCategory
+    ? videoProjects[selectedCategory]
+    : [...videoProjects.short, ...videoProjects.long];
+
+  const openReel = (index) => {
+    setCurrentVideoIndex(index);
+    setReelOpen(true);
+    document.body.style.overflow = 'hidden';
   };
 
-  const currentVideos = useMemo(() => {
-    if (viewState === "landing") return [];
-    return videoProjects[viewState] || [];
-  }, [viewState]);
+  const closeReel = () => {
+    setReelOpen(false);
+    document.body.style.overflow = 'auto';
+  };
 
-  // RENDER: GALLERY VIEW (Shorts or Cinematic)
-  if (viewState !== "landing") {
-    return (
-      <CinemaContainer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        <SEO
-          title={`UnmuteXE - ${viewState === 'short' ? 'Shorts' : 'Cinematic'}`}
-          description="Video Portfolio"
-        />
-        <FixedTopBar>
-          <NavLeft>
-            <GlassButton onClick={handleBackToLanding}>← Back to Showcase</GlassButton>
-          </NavLeft>
-          <NavCenter>
-            <h3 style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem' }}>
-              {viewState === 'short' ? 'Shorts Collection' : 'Cinematic Collection'}
-            </h3>
-          </NavCenter>
-          <NavRight>
-            <GlassButton onClick={() => navigate('/contact')}>Contact</GlassButton>
-          </NavRight>
-        </FixedTopBar>
+  const nextVideo = () => {
+    if (currentVideoIndex < displayVideos.length - 1) {
+      setCurrentVideoIndex(currentVideoIndex + 1);
+    }
+  };
 
-        <Container style={{ paddingTop: '100px' }}>
-          <VideoStreamContainer>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={viewState}
-                style={{ display: 'contents' }}
-              >
-                {currentVideos.map((video, index) => (
-                  <CinematicVideoItem
-                    key={`${viewState}-${index}`}
-                    video={video}
-                  />
-                ))}
-              </motion.div>
-            </AnimatePresence>
-          </VideoStreamContainer>
+  const prevVideo = () => {
+    if (currentVideoIndex > 0) {
+      setCurrentVideoIndex(currentVideoIndex - 1);
+    }
+  };
 
-          {/* Empty state check */}
-          {currentVideos.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '50px', opacity: 0.5 }}>
-              No videos found in this category yet.
-            </div>
-          )}
-        </Container>
-      </CinemaContainer>
-    );
-  }
+  // Keyboard navigation
+  React.useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (!reelOpen) return;
 
-  // RENDER: LANDING VIEW (Hero + Selection)
+      if (e.key === 'Escape') closeReel();
+      if (e.key === 'ArrowRight') nextVideo();
+      if (e.key === 'ArrowLeft') prevVideo();
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [reelOpen, currentVideoIndex, displayVideos.length]);
+
   return (
-    <CinemaContainer
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
+    <PageContainer>
       <SEO
-        title="UnmuteXE - Portfolio"
+        title="UnmuteXE - Video Portfolio"
         description="Cinematic Video Editing & Motion Graphics Portfolio by UnmuteXE."
       />
 
@@ -571,48 +1160,114 @@ const Video = memo(() => {
         </NavRight>
       </FixedTopBar>
 
-      <VynceVisual onButtonClick={handleScrollToSelection} />
+      {/* Section 1: Vynce Visuals Hero */}
+      <VynceVisual onButtonClick={handleScrollToShowcase} />
 
-      <SelectionSection ref={showcaseRef}>
-        <SelectionTitle
+      {/* Section 2: Showcase - Category Selection */}
+      <ShowcaseSection ref={showcaseRef}>
+        <ShowcaseTitle
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          Showcase<span>Select your visual experience</span>
-        </SelectionTitle>
+          SHOWCASE
+        </ShowcaseTitle>
 
-        <CardsRow>
-          <CategorySelectionCard
-            $glow="rgba(255, 100, 255, 0.4)"
-            onClick={() => handleSelection('short')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h3>Shorts</h3>
-          </CategorySelectionCard>
+        <ShowcaseSubtitle
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          PORTFOLIO
+        </ShowcaseSubtitle>
 
-          <CategorySelectionCard
-            $glow="rgba(0, 200, 255, 0.4)"
-            onClick={() => handleSelection('long')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+        <ShowcaseDescription
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          A CURATED COLLECTION OF VISUAL STORYTELLING.
+        </ShowcaseDescription>
+
+        <ScrollPrompt
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          <span>SCROLL TO EXPLORE</span>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 10l5 5 5-5z" />
+          </svg>
+        </ScrollPrompt>
+
+        <CategoryButtons>
+          <PillButton
+            onClick={() => handleScrollToVideos('short')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
           >
-            <h3>Cinematic</h3>
-          </CategorySelectionCard>
-        </CardsRow>
-      </SelectionSection>
-    </CinemaContainer>
+            Shorts
+          </PillButton>
+
+          <PillButton
+            onClick={() => handleScrollToVideos('long')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.9 }}
+          >
+            Cinematic
+          </PillButton>
+        </CategoryButtons>
+      </ShowcaseSection>
+
+      {/* Section 3: Video Gallery */}
+      <VideoSection ref={videosRef}>
+        <VideoSectionTitle>
+          {selectedCategory === 'short' && 'Shorts Collection'}
+          {selectedCategory === 'long' && 'Cinematic Collection'}
+          {!selectedCategory && 'All Works'}
+          <span>Hover to preview • Click to watch</span>
+        </VideoSectionTitle>
+
+        <VideoGrid>
+          {displayVideos.map((video, index) => (
+            <VideoItem
+              key={`${selectedCategory || 'all'}-${index}`}
+              video={video}
+              index={index}
+              onClick={openReel}
+            />
+          ))}
+        </VideoGrid>
+      </VideoSection>
+
+      {/* Reel Modal */}
+      <AnimatePresence>
+        {reelOpen && (
+          <ReelModalView
+            video={displayVideos[currentVideoIndex]}
+            onClose={closeReel}
+            onNext={nextVideo}
+            onPrev={prevVideo}
+            canGoNext={currentVideoIndex < displayVideos.length - 1}
+            canGoPrev={currentVideoIndex > 0}
+            navigate={navigate}
+          />
+        )}
+      </AnimatePresence>
+    </PageContainer>
   );
-});
+};
 
 export default Video;
