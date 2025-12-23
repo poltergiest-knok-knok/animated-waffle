@@ -313,7 +313,7 @@ const VideoCard = styled.div`
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
-  aspect-ratio: 9/16;
+  aspect-ratio: ${props => props.$cinematic ? '16/9' : '9/16'};
   cursor: pointer;
   transition: all 0.3s ease;
   
@@ -741,13 +741,340 @@ const ChatPrompt = styled(motion.div)`
   }
 `;
 
+// YouTube-Style Modal for Cinematic Videos
+const CinematicModal = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  
+  @media(max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+const CinematicContainer = styled.div`
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  gap: 20px;
+  padding: 80px 20px 20px 20px;
+  
+  @media(max-width: 768px) {
+    flex-direction: column;
+    padding: 60px 10px 10px 10px;
+    gap: 10px;
+  }
+`;
+
+const CinematicLeftPanel = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 70%;
+  
+  @media(max-width: 768px) {
+    max-width: 100%;
+    flex: none;
+  }
+`;
+
+const CinematicVideoWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  
+  @media(max-width: 768px) {
+    border-radius: 12px;
+  }
+`;
+
+const CinematicVideoInfo = styled.div`
+  padding: 10px 0;
+  
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #fff;
+    
+    @media(max-width: 768px) {
+      font-size: 1.1rem;
+    }
+  }
+  
+  p {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    line-height: 1.4;
+    
+    @media(max-width: 768px) {
+      font-size: 0.85rem;
+    }
+  }
+`;
+
+const CinematicButtonRow = styled.div`
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+const LiquidGlassButton = styled(motion.button)`
+  padding: 12px 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 24px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.1)
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%
+    );
+    background-size: 200% 200%;
+    animation: liquidFlow 3s ease infinite;
+    opacity: 0;
+  }
+  
+  @keyframes liquidFlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(255, 255, 255, 0.1),
+      inset 0 0 20px rgba(255, 255, 255, 0.05);
+    
+    &::before {
+      opacity: 1;
+    }
+    
+    &::after {
+      opacity: 1;
+    }
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  ${props => props.$liked && `
+    background: rgba(255, 68, 88, 0.15);
+    border-color: rgba(255, 68, 88, 0.4);
+    color: #ff4458;
+    
+    &:hover {
+      background: rgba(255, 68, 88, 0.25);
+      border-color: rgba(255, 68, 88, 0.6);
+    }
+  `}
+  
+  @media(max-width: 768px) {
+    padding: 10px 24px;
+    font-size: 0.85rem;
+  }
+`;
+
+const CinematicRightPanel = styled.div`
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 10px;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+  
+  @media(max-width: 768px) {
+    width: 100%;
+    max-height: 200px;
+    padding-right: 0;
+  }
+`;
+
+const RelatedVideoCard = styled.div`
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateX(4px);
+  }
+`;
+
+const RelatedVideoThumbnail = styled.div`
+  width: 140px;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  @media(max-width: 768px) {
+    width: 100px;
+  }
+`;
+
+const RelatedVideoInfo = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  
+  h4 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0;
+    color: #fff;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    
+    @media(max-width: 768px) {
+      font-size: 0.8rem;
+    }
+  }
+  
+  p {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    
+    @media(max-width: 768px) {
+      font-size: 0.7rem;
+    }
+  }
+`;
+
+const CinematicCloseButton = styled(motion.button)`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2001;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+  
+  @media(max-width: 768px) {
+    width: 40px;
+    height: 40px;
+    top: 15px;
+    right: 15px;
+    font-size: 1.2rem;
+  }
+`;
 
 
 // ==========================================
 // SUB-COMPONENTS
 // ==========================================
 
-const VideoItem = ({ video, onClick, index }) => {
+const VideoItem = ({ video, onClick, index, isCinematic }) => {
   const videoRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -783,6 +1110,7 @@ const VideoItem = ({ video, onClick, index }) => {
 
   return (
     <VideoCard
+      $cinematic={isCinematic}
       onClick={() => onClick(index)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -1229,6 +1557,218 @@ const ReelModalView = ({ video, onClose, onNext, onPrev, canGoNext, canGoPrev, n
   );
 };
 
+// Cinematic Modal Component (YouTube-style)
+const CinematicModalView = ({ video, allVideos, currentIndex, onClose, onSelectVideo }) => {
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  React.useEffect(() => {
+    // Auto-play when modal opens
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => { });
+      setIsPlaying(true);
+    }
+
+    // Reset states when video changes
+    setIsLiked(false);
+
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [video]);
+
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(() => { });
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+  };
+
+  const handleSubscribe = () => {
+    setIsSubscribed(!isSubscribed);
+    // Navigate to contact page when subscribing
+    if (!isSubscribed) {
+      window.open('https://www.instagram.com/vynce.visuals/', '_blank');
+    }
+  };
+
+  // Get related videos (all videos except current)
+  const relatedVideos = allVideos.filter((_, idx) => idx !== currentIndex);
+
+  return (
+    <CinematicModal
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <CinematicCloseButton onClick={onClose} whileTap={{ scale: 0.9 }}>
+        ✕
+      </CinematicCloseButton>
+
+      <CinematicContainer>
+        {/* Left Panel - Video + Info + Buttons */}
+        <CinematicLeftPanel>
+          <CinematicVideoWrapper onClick={handlePlayPause}>
+            <video
+              ref={videoRef}
+              src={(() => {
+                let url = video.src.startsWith('http') ? video.src : (CDN_BASE_URL ? `${CDN_BASE_URL}${video.src.replace(/\s+/g, '_')}` : video.src);
+                if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+                  const parts = url.split('/upload/');
+                  return `${parts[0]}/upload/w_1920,q_auto:good,f_auto/${parts[1]}`;
+                }
+                return url;
+              })()}
+              loop
+              playsInline
+              disablePictureInPicture
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+
+            {/* Pause overlay */}
+            <AnimatePresence>
+              {!isPlaying && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    backdropFilter: 'blur(2px)',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <svg viewBox="0 0 100 100" fill="white" style={{ width: '60px', height: '60px' }}>
+                    <polygon points="30,20 30,80 80,50" />
+                  </svg>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CinematicVideoWrapper>
+
+          <CinematicVideoInfo>
+            <h3>{video.title}</h3>
+            <p>{video.description}</p>
+          </CinematicVideoInfo>
+
+          <CinematicButtonRow>
+            <LiquidGlassButton
+              $liked={isLiked}
+              onClick={handleLike}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isLiked ? '❤️' : '🤍'} Like
+            </LiquidGlassButton>
+
+            <LiquidGlassButton
+              $liked={isSubscribed}
+              onClick={handleSubscribe}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                background: isSubscribed ? 'rgba(255, 68, 88, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                borderColor: isSubscribed ? 'rgba(255, 68, 88, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+                color: isSubscribed ? '#ff4458' : 'white',
+              }}
+            >
+              {isSubscribed ? '✓ Subscribed' : '🔔 Subscribe'}
+            </LiquidGlassButton>
+
+            <LiquidGlassButton
+              onClick={() => {
+                window.open('https://www.instagram.com/vynce.visuals/', '_blank');
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+              </svg>
+              Share
+            </LiquidGlassButton>
+          </CinematicButtonRow>
+        </CinematicLeftPanel>
+
+        {/* Right Panel - Related Videos */}
+        <CinematicRightPanel>
+          <h3 style={{
+            margin: '0 0 10px 0',
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            color: '#fff',
+            padding: '0 8px'
+          }}>
+            Related Videos
+          </h3>
+          {relatedVideos.map((relatedVideo, idx) => {
+            const actualIndex = allVideos.findIndex(v => v === relatedVideo);
+            return (
+              <RelatedVideoCard
+                key={actualIndex}
+                onClick={() => onSelectVideo(actualIndex)}
+              >
+                <RelatedVideoThumbnail>
+                  <video
+                    src={(() => {
+                      let url = relatedVideo.src.startsWith('http') ? relatedVideo.src : (CDN_BASE_URL ? `${CDN_BASE_URL}${relatedVideo.src.replace(/\s+/g, '_')}` : relatedVideo.src);
+                      if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+                        const parts = url.split('/upload/');
+                        return `${parts[0]}/upload/w_300,q_auto:eco,f_auto/${parts[1]}`;
+                      }
+                      return url;
+                    })()}
+                    poster={(() => {
+                      let url = relatedVideo.src;
+                      if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+                        const parts = url.split('/upload/');
+                        return `${parts[0]}/upload/so_1.0,w_300,q_auto,f_jpg/${parts[1].replace('.mp4', '.jpg')}`;
+                      }
+                      return '';
+                    })()}
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                </RelatedVideoThumbnail>
+                <RelatedVideoInfo>
+                  <h4>{relatedVideo.title}</h4>
+                  <p>{relatedVideo.description}</p>
+                </RelatedVideoInfo>
+              </RelatedVideoCard>
+            );
+          })}
+        </CinematicRightPanel>
+      </CinematicContainer>
+    </CinematicModal>
+  );
+};
+
 // ==========================================
 // MAIN COMPONENT
 // ==========================================
@@ -1396,14 +1936,15 @@ const Video = () => {
               video={video}
               index={index}
               onClick={openReel}
+              isCinematic={selectedCategory === 'long'}
             />
           ))}
         </VideoGrid>
       </VideoSection>
 
-      {/* Reel Modal */}
+      {/* Modal - Different for Shorts vs Cinematic */}
       <AnimatePresence>
-        {reelOpen && (
+        {reelOpen && selectedCategory === 'short' && (
           <ReelModalView
             video={displayVideos[currentVideoIndex]}
             onClose={closeReel}
@@ -1412,6 +1953,15 @@ const Video = () => {
             canGoNext={currentVideoIndex < displayVideos.length - 1}
             canGoPrev={currentVideoIndex > 0}
             navigate={navigate}
+          />
+        )}
+        {reelOpen && selectedCategory === 'long' && (
+          <CinematicModalView
+            video={displayVideos[currentVideoIndex]}
+            allVideos={displayVideos}
+            currentIndex={currentVideoIndex}
+            onClose={closeReel}
+            onSelectVideo={(index) => setCurrentVideoIndex(index)}
           />
         )}
       </AnimatePresence>
